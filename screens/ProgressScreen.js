@@ -723,60 +723,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 2,
   },
-  
-  // Filters
-  filterContainer: {
-    marginBottom: 20,
-  },
-  filterContent: {
-    paddingHorizontal: 20,
-    gap: 10,
-  },
-  filterChip: {
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  filterChipActive: {
-    elevation: 4,
-    shadowColor: "#00eaff",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
   filterChipGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    gap: 8,
-  },
-  filterChipText: {
-    color: "#888",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  filterChipTextActive: {
-    color: "#fff",
-  },
-  filterChipBadge: {
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    minWidth: 20,
-    alignItems: "center",
-  },
-  filterChipBadgeActive: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-  },
-  filterChipBadgeText: {
-    color: "#888",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  filterChipBadgeTextActive: {
-    color: "#fff",
-  },
+  flexDirection: "row",
+  alignItems: "center",
+  paddingHorizontal: 12,  // smaller horizontal padding
+  paddingVertical: 2,     // much smaller vertical padding
+  height: 28,             // fixed height for uniformity
+  gap: 6,
+},
+filterChipText: {
+  color: "#888",
+  fontSize: 12,           // smaller font
+  fontWeight: "600",
+  lineHeight: 14,         // fits inside chip height
+},
+filterChipBadge: {
+  backgroundColor: "rgba(255,255,255,0.1)",
+  borderRadius: 8,
+  paddingHorizontal: 4,
+  paddingVertical: 1,
+  minWidth: 16,
+  height: 16,             // fixed height to align with chip
+  alignItems: "center",
+  justifyContent: "center",
+},
+filterChipBadgeText: {
+  color: "#888",
+  fontSize: 10,
+  fontWeight: "bold",
+  lineHeight: 10,
+},
+
+  
+  
   
   // Orders
   ordersContainer: {
