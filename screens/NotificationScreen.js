@@ -24,7 +24,7 @@ import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { useAuth } from "../AuthContext";
 
 const { width, height } = Dimensions.get("window");
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "https://backend-luminan.onrender.com";
 
 const notificationTypes = {
   order: {

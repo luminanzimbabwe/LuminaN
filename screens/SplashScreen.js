@@ -20,45 +20,51 @@ const SplashScreen = ({ navigation }) => {
   const middleScale = useRef(new Animated.Value(0.8)).current;
   const { user, loading } = useAuth();
 
-
-  
-
   useEffect(() => {
-  let timer;
-  if (!loading) {
-    // Play animations
-    Animated.parallel([
-      Animated.timing(leftAnim, {
-        toValue: 0,
-        duration: 600,
-        easing: Easing.out(Easing.exp),
-        useNativeDriver: true,
-      }),
-      Animated.timing(rightAnim, {
-        toValue: 0,
-        duration: 600,
-        easing: Easing.out(Easing.exp),
-        useNativeDriver: true,
-      }),
-      Animated.spring(middleScale, {
-        toValue: 1,
-        friction: 4,
-        tension: 80,
-        delay: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    let timer;
 
-    // Ensure splash shows at least 1.5s
-    timer = setTimeout(() => {
-      if (user) navigation.replace("MainApp");
-      else navigation.replace("Welcome");
-    }, 2500);
-  }
+    // Check if the app has finished loading user data
+    if (!loading) {
+      // Start the animations once loading is complete
+      Animated.parallel([
+        Animated.timing(leftAnim, {
+          toValue: 0,
+          duration: 600,
+          easing: Easing.out(Easing.exp),
+          useNativeDriver: true,
+        }),
+        Animated.timing(rightAnim, {
+          toValue: 0,
+          duration: 600,
+          easing: Easing.out(Easing.exp),
+          useNativeDriver: true,
+        }),
+        Animated.spring(middleScale, {
+          toValue: 1,
+          friction: 4,
+          tension: 80,
+          delay: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
 
-  return () => clearTimeout(timer);
-}, [loading, user]);
+      // Ensure splash shows for at least 1.5s or until loading completes
+      timer = setTimeout(() => {
+        // Navigate based on whether the user is logged in
+        if (user) {
+          navigation.replace("MainApp");
+        } else {
+          navigation.replace("Welcome");
+        }
+      }, 1500); // reduced to 1500ms for quicker transition
 
+    } else {
+      // When loading is true, ensure splash screen is shown
+      timer = setTimeout(() => setLoading(false), 1000); // Adjust this timeout as needed
+    }
+
+    return () => clearTimeout(timer);
+  }, [loading, user, navigation]); // Add navigation to dependency array to avoid stale closures
 
   return (
     <View style={styles.container}>
@@ -137,12 +143,14 @@ const SplashScreen = ({ navigation }) => {
           </AnimatedText>
         </Svg>
 
-        {/* Loading Indicator */}
-        <ActivityIndicator
-          size="small"
-          color="#6EC6FF"
-          style={{ marginTop: 15 }}
-        />
+        {/* Conditional Loading Indicator */}
+        {!loading && (
+          <ActivityIndicator
+            size="small"
+            color="#6EC6FF"
+            style={{ marginTop: 15 }}
+          />
+        )}
       </View>
     </View>
   );
@@ -154,9 +162,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#232323",
-    justifyContent: "flex-end", // push things lower
+    justifyContent: "flex-end", // Push things lower
     alignItems: "center",
-    paddingBottom: 120, // control how far from bottom
+    paddingBottom: 120, // Control how far from bottom
   },
   logoWrapper: {
     alignItems: "center",

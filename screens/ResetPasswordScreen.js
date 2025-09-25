@@ -23,7 +23,7 @@ const ResetPasswordScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const BACKEND_URL = "http://localhost:8000/api";
+  const BACKEND_URL = "https://backend-luminan.onrender.com/api";
 
   // Step 1: Send reset code
   const handleSendCode = async () => {

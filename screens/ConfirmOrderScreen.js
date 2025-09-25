@@ -17,7 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
 import { useAuth } from "../AuthContext";
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "https://backend-luminan.onrender.com";
 const { width } = Dimensions.get("window");
 
 const ConfirmOrder = ({ navigation, route }) => {

@@ -24,7 +24,7 @@ import { useAuth } from "../AuthContext"; // adjust path if needed
 
 
 const { width, height } = Dimensions.get("window");
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "https://backend-luminan.onrender.com";
 
 const statusConfig = {
   pending: {

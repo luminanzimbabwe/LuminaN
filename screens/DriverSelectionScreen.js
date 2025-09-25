@@ -1,4 +1,3 @@
-// screens/DriverSelect.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -11,15 +10,16 @@ import {
   TextInput,
   Modal,
 } from "react-native";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../AuthContext"; // Ensure you are using the correct auth context
 
 const { width } = Dimensions.get("window");
-const BACKEND_URL = "http://localhost:8000/drivers/list/";
+const BACKEND_URL = "https://backend-luminan.onrender.com/drivers/list/";
 
 const DriverSelect = ({ navigation, route }) => {
   const { orderId, weight } = route.params; // total weight from ConfirmOrder
-  const { authToken } = useAuth();
+  const { authToken } = useAuth(); // Access token for authentication
 
+  // States for drivers, filtered drivers, loading, assigning, modals
   const [drivers, setDrivers] = useState([]);
   const [filteredDrivers, setFilteredDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ const DriverSelect = ({ navigation, route }) => {
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch drivers
+  // Fetch drivers when the component mounts
   useEffect(() => {
     const fetchDrivers = async () => {
       try {
@@ -61,39 +61,62 @@ const DriverSelect = ({ navigation, route }) => {
     }
   }, [searchQuery, drivers]);
 
-  // Assign driver to order
+  // Assign driver to the order
   const handleSelectDriver = async (driver) => {
-    setAssigning(true);
-    try {
-      const res = await fetch(`http://localhost:8000/orders/assign/${orderId}/`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ driver_id: driver.driver_id }),
-      });
+  setAssigning(true);
+  try {
+    // Debugging: log the driver object and its ID
+    console.log("Selected Driver:", driver);
+    console.log("Driver ID:", driver.driver_id);  // Log driver driver_id for debugging
 
-      const data = await res.json();
-
-      if (res.ok) {
-        setSelectedDriver(driver);
-        setSuccessModal(true);
-        setTimeout(() => {
-          setSuccessModal(false);
-          navigation.navigate("OrderSuccess", { orderId, driver });
-        }, 1500);
-      } else {
-        alert(data.error || "Failed to assign order.");
-      }
-    } catch (err) {
-      console.error("Driver assignment failed:", err);
-      alert("Something went wrong.");
-    } finally {
-      setAssigning(false);
+    // Check if driver.driver_id exists and is valid
+    if (!driver.driver_id) {
+      alert("Driver ID is invalid.");
+      return;
     }
-  };
 
+    // Construct the request URL for POST method (assigning driver)
+    const url = `https://backend-luminan.onrender.com/orders/assign/`;  // No need for orderId here if it's passed in the body
+    console.log("Request URL:", url);
+    console.log("Sending Driver ID:", driver.driver_id); // Log the ID being sent in the request
+
+    const res = await fetch(url, {
+      method: "POST",  // Use POST instead of PATCH
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ 
+        driver_id: driver.driver_id,
+        order_id: orderId,  // You can send orderId in the body instead of the URL
+      }), 
+    });
+
+    if (!res.ok) {
+      const errorData = await res.text();
+      console.error("Error response:", errorData);
+      alert(errorData || "Failed to assign order.");
+      return;
+    }
+
+    const data = await res.json();
+    setSelectedDriver(driver);
+    setSuccessModal(true);
+
+    setTimeout(() => {
+      setSuccessModal(false);
+      navigation.navigate("OrderSuccess", { orderId, driver });
+    }, 1500);
+  } catch (err) {
+    console.error("Driver assignment failed:", err);
+    alert("Something went wrong: " + err.message);
+  } finally {
+    setAssigning(false);
+  }
+};
+
+
+  // Loading state while fetching drivers
   if (loading) {
     return (
       <View style={styles.center}>
@@ -103,6 +126,7 @@ const DriverSelect = ({ navigation, route }) => {
     );
   }
 
+  // If no drivers are available
   if (!filteredDrivers.length) {
     return (
       <View style={styles.center}>
@@ -131,7 +155,7 @@ const DriverSelect = ({ navigation, route }) => {
           const totalPrice = (weight || 1) * pricePerKg;
 
           return (
-            <View key={driver.driver_id} style={styles.card}>
+            <View key={driver.driver_id} style={styles.card}> {/* Use driver.driver_id as the key */}
               <View style={styles.cardHeader}>
                 <Text style={styles.name}>{driver.username}</Text>
                 <Text style={styles.company}>

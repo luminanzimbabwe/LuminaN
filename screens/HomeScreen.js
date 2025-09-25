@@ -35,7 +35,7 @@ const packages = [
   { id: 5, weight: "45kg", description: "Commercial use", icon: "flame", popular: false },
 ];
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "https://backend-luminan.onrender.com";
 
 const NewHomeScreen = ({ navigation }) => {
   const [selectedPackage, setSelectedPackage] = useState(null);

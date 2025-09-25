@@ -78,7 +78,7 @@ const RegisterScreen = ({ navigation }) => {
       confirm_password: formData.confirmPassword,
     };
 
-    const response = await fetch("http://localhost:8000/api/register/", {
+    const response = await fetch("https://backend-luminan.onrender.com/api/register/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
