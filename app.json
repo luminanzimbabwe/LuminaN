@@ -35,8 +35,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "4802c0e3-9f93-4d16-8505-f13322633039"
+        "projectId": "89ff9c5e-735e-4386-ae2e-fbbbd3904add"
       }
-    }
+    },
+    "owner": "luminan"
   }
 }
