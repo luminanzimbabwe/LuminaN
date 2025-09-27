@@ -1,134 +1,114 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // { id, username, email, phone_number, role, verified }
-  const [authToken, setAuthToken] = useState(null); // Single token
-  const [loading, setLoading] = useState(true); // Loading state for auth check
-
+  const [authToken, setAuthToken] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const BACKEND_URL = "https://backend-luminan.onrender.com";
 
-  // Load stored auth state on app start
-  useEffect(() => {
-    const loadAuth = async () => {
-      try {
-        const savedToken = await AsyncStorage.getItem("authToken");
-        const savedUser = await AsyncStorage.getItem("user");
-
-        if (savedToken && savedUser) {
-          // If token and user data are found, set them to state
-          setAuthToken(savedToken);
-          setUser(JSON.parse(savedUser));
-
-          // Validate token with backend
-          try {
-            const res = await fetch(`${BACKEND_URL}/profile/`, {
-              headers: { Authorization: `Bearer ${savedToken}` },
-            });
-
-            if (!res.ok) {
-              console.warn("Invalid token, signing out");
-              await signOut();
-            } else {
-              const data = await res.json();
-              const freshUser = data.user || data.profile || data; // Fallback to `data`
-              setUser(freshUser);
-              await AsyncStorage.setItem("user", JSON.stringify(freshUser)); // Update stored user
-            }
-          } catch (err) {
-            console.warn("Backend unreachable, using cached user", err);
-          }
-        }
-      } catch (e) {
-        console.error("Failed to load auth from storage", e);
-      } finally {
-        setLoading(false); // Set loading to false when auth check is complete
-      }
-    };
-
-    loadAuth();
-  }, []); // Run only on mount
-
-  // Sign in - Save token and user to state and AsyncStorage
-  const signIn = async (token, userData) => {
+  /** Sign in: stores auth token and user */
+  const signIn = (token, userData) => {
     if (!token || !userData) return;
     setAuthToken(token);
     setUser(userData);
-
-    try {
-      await AsyncStorage.setItem("authToken", token);
-      await AsyncStorage.setItem("user", JSON.stringify(userData));
-    } catch (e) {
-      console.error("Failed to save auth to storage", e);
-    }
+    AsyncStorage.setItem("authToken", token);
   };
 
-  // Sign out - Clear token and user from state and AsyncStorage
-  const signOut = async () => {
+  /** Sign out */
+  const signOut = () => {
     setAuthToken(null);
     setUser(null);
-
-    try {
-      await AsyncStorage.removeItem("authToken");
-      await AsyncStorage.removeItem("user");
-    } catch (e) {
-      console.error("Failed to clear auth storage", e);
-    }
+    AsyncStorage.removeItem("authToken");
   };
 
-  // Fetch wrapper with auth token included
-  const fetchWithAuth = async (url, options = {}) => {
-    if (!authToken) throw new Error("No auth token available");
-
-    const res = await fetch(url, {
-      ...options,
-      headers: { ...options.headers, Authorization: `Bearer ${authToken}` },
-    });
-
-    // Sign out if token is invalid
-    if (res.status === 401 || res.status === 403) {
-      await signOut();
-      throw new Error("Unauthorized or expired token");
-    }
-
-    // Handle non-2xx responses here, if necessary
-    if (!res.ok) {
-      throw new Error(`Request failed with status ${res.status}`);
-    }
-
-    return res;
-  };
-
-  // Refresh user profile from the backend
-  const refreshUser = async () => {
-    if (!authToken) return;
+  /** Validate token with backend */
+  const validateToken = async (token) => {
     try {
-      const res = await fetchWithAuth(`${BACKEND_URL}/profile/`);
+      const res = await fetch(`${BACKEND_URL}/profile/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) return false;
       const data = await res.json();
-      const latestUser = data.user || data.profile || data;
-      setUser(latestUser);
-      await AsyncStorage.setItem("user", JSON.stringify(latestUser)); // Update stored user data
-    } catch (e) {
-      console.error("Failed to refresh user", e);
+      setUser(data); // set user from backend
+      return true;
+    } catch (err) {
+      console.error("Token validation failed:", err);
+      return false;
     }
   };
 
-  // Check if user is logged in
-  const isLoggedIn = !!user && !!authToken;
+  /** Initialize auth */
+  const initAuth = async () => {
+    setLoading(true);
+    const token = await AsyncStorage.getItem("authToken");
+
+    if (token) {
+      const valid = await validateToken(token);
+      if (valid) {
+        setAuthToken(token);
+      } else {
+        signOut();
+      }
+    } else {
+      signOut();
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    initAuth();
+  }, []);
+
+  /** Fetch wrapper for user API calls */
+  const fetchUserAPI = async (endpoint, options = {}) => {
+    if (!authToken) throw new Error("User not signed in");
+
+    const method = options.method || "GET";
+    try {
+      const res = await fetch(`${BACKEND_URL}${endpoint}`, {
+        ...options,
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authToken}`,
+          ...options.headers,
+        },
+        body: method !== "GET" && options.body ? JSON.stringify(options.body) : null,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Request failed");
+      }
+
+      return res.json();
+    } catch (error) {
+      console.error("Fetch request failed:", error);
+      throw error;
+    }
+  };
+
+  const isLoggedIn = !!authToken;
 
   return (
     <AuthContext.Provider
       value={{
-        user,
         authToken,
+        user,
         loading,
         isLoggedIn,
         signIn,
         signOut,
-        refreshUser,
-        fetchWithAuth,
+        fetchUserAPI,
+        initAuth,
       }}
     >
       {children}
@@ -136,7 +116,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-/** Custom hook to use the AuthContext */
+/** Custom hook */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used inside AuthProvider");

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../AuthContext";
 
-// Import screens
+// Screens
 import SplashScreen from "../screens/SplashScreen";
 import WelcomeScreen from "../screens/WelcomeScreen";
 import LoginScreen from "../screens/LoginScreen";
@@ -14,34 +14,21 @@ import NotificationScreen from "../screens/NotificationScreen";
 import ConfirmOrderScreen from "../screens/ConfirmOrderScreen";
 import DriverSelectionScreen from "../screens/DriverSelectionScreen";
 
-// Import TabNavigator (MainApp)
+// Main App Tabs
 import TabNavigator from "./TabNavigator";
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const { user, loading } = useAuth();
-  const [isLoading, setIsLoading] = useState(loading);
 
-  // Handle the timeout for SplashScreen to prevent long loading time
-  useEffect(() => {
-    if (loading) {
-      const timer = setTimeout(() => {
-        setIsLoading(false); // Stop showing splash screen after 2 seconds
-      }, 2000); // You can adjust this duration as per your needs
-
-      return () => clearTimeout(timer);
-    }
-  }, [loading]);
-
-  if (isLoading) {
-    return <SplashScreen />;
-  }
+  // Show splash until auth loads
+  if (loading) return <SplashScreen />;
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!user ? (
-        // Auth flow for non-logged-in users
+        // Auth flow
         <>
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
@@ -51,7 +38,7 @@ const AppNavigator = () => {
           <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
         </>
       ) : (
-        // Fully logged-in → main app flow
+        // Logged-in → Main App flow
         <>
           <Stack.Screen name="MainApp" component={TabNavigator} />
           <Stack.Screen name="Notification" component={NotificationScreen} />

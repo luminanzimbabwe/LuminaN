@@ -712,9 +712,10 @@ const fetchNotifications = async (showRefresh = false) => {
 
 export default NotificationScreen;
 
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  
+
   // Loading
   loadingContainer: {
     flex: 1,
@@ -727,24 +728,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
   },
-  
+
   // Header
   header: {
-    marginTop: Platform.OS === 'ios' ? 50 : 30,
+    
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 4, // tighter space below header
     borderRadius: 20,
     overflow: "hidden",
   },
   headerBlur: {
-    padding: 20,
+    padding: 16,
     backgroundColor: "rgba(255,255,255,0.05)",
   },
   headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 12, // reduced spacing
   },
   headerTitle: {
     color: "#fff",
@@ -753,95 +754,104 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     flexDirection: "row",
-    gap: 15,
+    gap: 12,
   },
   headerButton: {
     padding: 8,
     borderRadius: 12,
     backgroundColor: "rgba(0,234,255,0.1)",
   },
-  
+
   // Search
   searchContainer: {
     overflow: "hidden",
-    marginBottom: 20,
+    marginBottom: 12, // tighter spacing
   },
   searchInputContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
     borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
   },
   searchInput: {
     flex: 1,
     color: "#fff",
     fontSize: 16,
   },
-  
+
   // Stats
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
+    marginBottom: 8,
   },
   statItem: {
     alignItems: "center",
   },
   statNumber: {
     color: "#00eaff",
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
   },
   statLabel: {
     color: "#888",
-    fontSize: 14,
+    fontSize: 12,
     marginTop: 2,
   },
-  filterChipGradient: {
-  flexDirection: "row",
-  alignItems: "center",
-  paddingHorizontal: 12,
-  paddingVertical: 2,   // small vertical padding
-  height: 28,           // fixed height to control size
-  gap: 4,
-},
-filterChipText: {
-  color: "#888",
-  fontSize: 12,         // smaller font
-  fontWeight: "600",
-  lineHeight: 14,       // ensure text fits within chip
-},
-filterChipBadge: {
-  backgroundColor: "rgba(255,255,255,0.1)",
-  borderRadius: 8,
-  paddingHorizontal: 4,
-  paddingVertical: 1,
-  minWidth: 16,
-  height: 16,           // fixed height for badge
-  alignItems: "center",
-  justifyContent: "center",
-},
-filterChipBadgeText: {
-  color: "#888",
-  fontSize: 10,
-  fontWeight: "bold",
-  lineHeight: 10,
-},
 
-  
-  
+  // Filter Chips
+  filterContainer: {
+    maxHeight: 50,
+    marginTop: 0, // removed extra space above filters
+    marginBottom: 8,
+  },
+  filterContent: {
+    paddingHorizontal: 8,
+    alignItems: "center",
+    gap: 6,
+  },
+  filterChipGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    height: 28,
+    gap: 6,
+  },
+  filterChipText: {
+    color: "#888",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 14,
+  },
+  filterChipBadge: {
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    minWidth: 16,
+    height: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterChipBadgeText: {
+    color: "#888",
+    fontSize: 10,
+    fontWeight: "bold",
+    lineHeight: 10,
+  },
+
   // Notifications
   notificationsContainer: {
     flex: 1,
+    marginTop: 0, // removed space above notifications
   },
   notificationsContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100,
-  },
-  notificationContainer: {
-    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 80,
   },
   notificationCard: {
     borderRadius: 16,
@@ -851,10 +861,10 @@ filterChipBadgeText: {
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    marginBottom: 12,
   },
   unreadNotification: {
     elevation: 6,
-    shadowOpacity: 0.2,
     shadowOpacity: 0.2,
     borderWidth: 1,
     borderColor: "rgba(0,234,255,0.3)",
@@ -867,7 +877,7 @@ filterChipBadgeText: {
     padding: 16,
     position: "relative",
   },
-  
+
   // Priority Indicator
   priorityIndicator: {
     position: "absolute",
@@ -875,12 +885,12 @@ filterChipBadgeText: {
     right: 8,
     zIndex: 1,
   },
-  
+
   // Card Header
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 4,
   },
   typeIconContainer: {
     width: 48,
@@ -920,7 +930,7 @@ filterChipBadgeText: {
     borderRadius: 12,
     backgroundColor: "rgba(255,255,255,0.05)",
   },
-  
+
   // Message
   messageContainer: {
     marginBottom: 8,
@@ -930,7 +940,7 @@ filterChipBadgeText: {
     fontSize: 14,
     lineHeight: 20,
   },
-  
+
   // Expanded Content
   expandedContent: {
     marginTop: 16,
@@ -980,7 +990,7 @@ filterChipBadgeText: {
     fontSize: 14,
     fontWeight: "600",
   },
-  
+
   // Additional Info
   additionalInfo: {
     gap: 8,
@@ -994,13 +1004,13 @@ filterChipBadgeText: {
     color: "#888",
     fontSize: 12,
   },
-  
+
   // Expand Indicator
   expandIndicator: {
     alignItems: "center",
     marginTop: 8,
   },
-  
+
   // Empty State
   emptyContainer: {
     flex: 1,

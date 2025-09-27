@@ -667,7 +667,7 @@ export default OrderProgressScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  
+
   // Loading
   loadingContainer: {
     flex: 1,
@@ -680,31 +680,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
   },
-  
+
   // Header
   header: {
-    marginTop: Platform.OS === 'ios' ? 50 : 30,
-    marginHorizontal: 20,
-    marginBottom: 20,
+    marginTop: Platform.OS === 'ios' ? 40 : 20, // slightly reduced
+    marginHorizontal: 16, // smaller horizontal margin
+    marginBottom: 10,     // reduced bottom margin
     borderRadius: 20,
     overflow: "hidden",
   },
   headerBlur: {
-    padding: 20,
+    padding: 16, // slightly reduced padding
     backgroundColor: "rgba(255,255,255,0.05)",
   },
   headerTitle: {
     color: "#fff",
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 5,
+    marginBottom: 4, // reduce bottom margin
   },
   headerSubtitle: {
     color: "#888",
-    fontSize: 16,
+    fontSize: 14,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 12, // reduce space before stats
   },
   statsContainer: {
     flexDirection: "row",
@@ -715,74 +715,83 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     color: "#00eaff",
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
   },
   statLabel: {
     color: "#888",
-    fontSize: 14,
+    fontSize: 12,
     marginTop: 2,
   },
-  filterChipGradient: {
-  flexDirection: "row",
-  alignItems: "center",
-  paddingHorizontal: 12,  // smaller horizontal padding
-  paddingVertical: 2,     // much smaller vertical padding
-  height: 28,             // fixed height for uniformity
-  gap: 6,
-},
-filterChipText: {
-  color: "#888",
-  fontSize: 12,           // smaller font
-  fontWeight: "600",
-  lineHeight: 14,         // fits inside chip height
-},
-filterChipBadge: {
-  backgroundColor: "rgba(255,255,255,0.1)",
-  borderRadius: 8,
-  paddingHorizontal: 4,
-  paddingVertical: 1,
-  minWidth: 16,
-  height: 16,             // fixed height to align with chip
-  alignItems: "center",
-  justifyContent: "center",
-},
-filterChipBadgeText: {
-  color: "#888",
-  fontSize: 10,
-  fontWeight: "bold",
-  lineHeight: 10,
-},
 
-  
-  
-  
+  // Filter Chips
+  filterContainer: {
+    maxHeight: 50,
+    marginBottom: 8, // reduce space below filters
+  },
+  filterContent: {
+    paddingHorizontal: 10,
+    alignItems: "center",
+    gap: 6, // small horizontal gap between chips
+  },
+  filterChipGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    height: 28,
+    gap: 6,
+  },
+  filterChipText: {
+    color: "#888",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 14,
+  },
+  filterChipBadge: {
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    minWidth: 16,
+    height: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterChipBadgeText: {
+    color: "#888",
+    fontSize: 10,
+    fontWeight: "bold",
+    lineHeight: 10,
+  },
+
   // Orders
   ordersContainer: {
     flex: 1,
   },
   ordersContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100,
+    paddingHorizontal: 16,
+    paddingBottom: 60,
+    paddingTop: 5, // very small top padding to reduce space
   },
   orderCardContainer: {
-    marginBottom: 16,
+    marginBottom: 12, // slightly smaller gap between orders
   },
   orderCard: {
-    borderRadius: 20,
+    borderRadius: 18,
     overflow: "hidden",
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: 6,
   },
   orderCardExpanded: {
-    elevation: 8,
+    elevation: 6,
     shadowOpacity: 0.2,
   },
   cardGradient: {
-    padding: 20,
+    padding: 16,
     position: "relative",
   },
   statusIndicator: {
@@ -790,208 +799,67 @@ filterChipBadgeText: {
     top: 0,
     left: 0,
     right: 0,
-    height: 4,
+    height: 3, // thinner status bar
   },
-  
+
   // Card Header
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 16,
+    marginBottom: 12, // slightly reduced
   },
-  orderInfo: {
-    flex: 1,
-  },
+  orderInfo: { flex: 1 },
   orderIdContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 4,
+    gap: 6,
+    marginBottom: 2,
   },
-  orderIdText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  orderDate: {
-    color: "#888",
-    fontSize: 14,
-  },
-  progressContainer: {
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  progressIcon: {
-    position: "absolute",
-  },
-  
+  orderIdText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  orderDate: { color: "#888", fontSize: 12 },
+  progressContainer: { position: "relative", alignItems: "center", justifyContent: "center" },
+  progressIcon: { position: "absolute" },
+
   // Status Info
-  statusInfo: {
-    marginBottom: 16,
-  },
-  statusLabelContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 4,
-  },
-  statusLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusDescription: {
-    color: "#888",
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  
+  statusInfo: { marginBottom: 12 },
+  statusLabelContainer: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 2 },
+  statusLabel: { fontSize: 14, fontWeight: "bold" },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusDescription: { color: "#888", fontSize: 12, lineHeight: 16 },
+
   // Order Details
-  orderDetails: {
-    gap: 8,
-  },
-  detailItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  detailText: {
-    color: "#e5e7eb",
-    fontSize: 14,
-    flex: 1,
-  },
-  
+  orderDetails: { gap: 6 },
+  detailItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  detailText: { color: "#e5e7eb", fontSize: 12, flex: 1 },
+
   // Expanded Content
-  expandedContent: {
-    marginTop: 16,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    marginBottom: 16,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 20,
-  },
-  actionButton: {
-    flex: 1,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  actionButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 12,
-    gap: 8,
-  },
-  actionButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  actionButtonSecondary: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 12,
-    gap: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(0,234,255,0.3)",
-  },
-  actionButtonSecondaryText: {
-    color: "#00eaff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  
+  expandedContent: { marginTop: 12 },
+  divider: { height: 1, backgroundColor: "rgba(255,255,255,0.1)", marginBottom: 12 },
+  actionButtons: { flexDirection: "row", gap: 8, marginBottom: 12 },
+  actionButton: { flex: 1, borderRadius: 12, overflow: "hidden" },
+  actionButtonGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", padding: 10, gap: 6 },
+  actionButtonText: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  actionButtonSecondary: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", padding: 10, gap: 6, borderRadius: 12, borderWidth: 1, borderColor: "rgba(0,234,255,0.3)" },
+  actionButtonSecondaryText: { color: "#00eaff", fontSize: 12, fontWeight: "600" },
+
   // Timeline
-  timelinePreview: {
-    gap: 12,
-  },
-  timelineTitle: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  timelineItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  timelineIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  timelineText: {
-    color: "#e5e7eb",
-    fontSize: 14,
-    flex: 1,
-  },
-  timelineTime: {
-    color: "#888",
-    fontSize: 12,
-  },
-  
+  timelinePreview: { gap: 10 },
+  timelineTitle: { color: "#fff", fontSize: 14, fontWeight: "bold", marginBottom: 6 },
+  timelineItem: { flexDirection: "row", alignItems: "center", gap: 8 },
+  timelineIcon: { width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  timelineText: { color: "#e5e7eb", fontSize: 12, flex: 1 },
+  timelineTime: { color: "#888", fontSize: 10 },
+
   // Expand Indicator
-  expandIndicator: {
-    position: "absolute",
-    bottom: 10,
-    right: 20,
-  },
-  
+  expandIndicator: { position: "absolute", bottom: 8, right: 16 },
+
   // Empty State
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-  },
-  emptyGradient: {
-    alignItems: "center",
-    padding: 40,
-    borderRadius: 20,
-    width: "100%",
-  },
-  emptyTitle: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 20,
-    marginBottom: 8,
-  },
-  emptyText: {
-    color: "#888",
-    fontSize: 16,
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 30,
-  },
-  emptyButton: {
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  emptyButtonGradient: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  emptyButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: 40 },
+  emptyGradient: { alignItems: "center", padding: 30, borderRadius: 20, width: "100%" },
+  emptyTitle: { color: "#fff", fontSize: 20, fontWeight: "bold", marginTop: 16, marginBottom: 6 },
+  emptyText: { color: "#888", fontSize: 14, textAlign: "center", lineHeight: 18, marginBottom: 20 },
+  emptyButton: { borderRadius: 12, overflow: "hidden" },
+  emptyButtonGradient: { paddingHorizontal: 20, paddingVertical: 10 },
+  emptyButtonText: { color: "#fff", fontSize: 14, fontWeight: "600" },
 });
