@@ -1,10 +1,16 @@
 {
   "cli": {
-    "version": ">=16.18.1",
+    "version": ">=5.9.0",
     "appVersionSource": "remote"
   },
   "build": {
+    "base": {
+      "cache": {
+        "key": "v1.0.1" 
+      }
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
       "android": {
@@ -12,12 +18,15 @@
       }
     },
     "preview": {
+      "extends": "base",
       "distribution": "internal",
       "android": {
-        "buildType": "app-bundle"
+       
+        "buildType": "apk" 
       }
     },
     "production": {
+      "extends": "base",
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"

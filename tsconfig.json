@@ -1,8 +1,15 @@
 {
+  "extends": "./node_modules/expo/tsconfig.base.json",
   "compilerOptions": {
     "moduleResolution": "Node16",
     "module": "Node16",
-    "strict": true
+    "strict": true,
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
-  "extends": "expo/tsconfig.base"
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js", "jest.config.js"]
 }

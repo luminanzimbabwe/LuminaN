@@ -1,16 +1,25 @@
-{
+module.exports = {
   "expo": {
     "name": "LuminaN",
     "slug": "LuminaN",
     "version": "1.0.0",
-    "orientation": "default",
+    "sdkVersion": "54.0.0",
+    "description": "A refined app for managing assets.",
+    "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "scheme": "luminan",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.luminan"
+      "bundleIdentifier": "com.luminan",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -31,13 +40,21 @@
           "image": "./assets/splash-icon.png"
         }
       ],
-      "react-native-edge-to-edge"
+      "react-native-edge-to-edge",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.0.21"
+          }
+        }
+      ]
     ],
     "extra": {
-      "eas": {
-        "projectId": "bc0c9b12-b895-46e4-892f-7983df55b098"
-      }
-    },
-    "owner": "luminanapp"
+  "eas": {
+    "projectId": "5e7b44c2-c202-4a9f-bed8-b8660dfc65b0"
   }
 }
+
+  }
+};
