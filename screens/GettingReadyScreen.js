@@ -11,33 +11,42 @@ import {
   Vibration,
   TouchableOpacity,
   Pressable,
+  ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import Svg, { 
-  Circle, 
-  Line, 
-  Path, 
-  Defs, 
-  LinearGradient as SvgLinearGradient, 
-  Stop, 
-  RadialGradient,
-  G
-} from "react-native-svg";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import Svg, { Circle, Line, G, Defs, Stop, LinearGradient as SvgLinearGradient } from "react-native-svg";
+import { Ionicons } from "@expo/vector-icons";
+
+// 💡 NEW: Import the useAuth hook
+import { useAuth } from '../AuthContext'; 
+
+// 💡 FIX: Create the animated versions of the SVG components using the helper
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedLine = Animated.createAnimatedComponent(Line);
+
+// Use Animated.ScrollView instead of Animated.View for scrollable content
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
+
 
 const { width, height } = Dimensions.get("window");
 const SIZE = Math.min(width * 0.7, 280); // Enhanced responsive sizing
 
 const GettingReadyScreen = ({ navigation }) => {
+  // 💡 NEW: Access user state from AuthContext
+  const { user, markOnboardingComplete } = useAuth();
+ 
+
   const [seconds, setSeconds] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipContent, setTooltipContent] = useState("");
   const [canSkip, setCanSkip] = useState(false);
 
-  // Enhanced Animation refs
+  
+
+  // Animation Refs
   const progressAnim = useRef(new Animated.Value(0)).current;
   const handAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -49,7 +58,7 @@ const GettingReadyScreen = ({ navigation }) => {
   const skipButtonAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
 
-  // Enhanced setup steps with icons and descriptions
+  // Setup Steps Data
   const setupSteps = [
     {
       id: 0,
@@ -85,87 +94,35 @@ const GettingReadyScreen = ({ navigation }) => {
     },
   ];
 
-  useEffect(() => {
-    // Initialize particle animations
-    for (let i = 0; i < 12; i++) {
-      particleAnimations[i] = new Animated.Value(0);
+  // --- Utility Functions ---
+
+  const handleComplete = () => {
+  if (Platform.OS === 'ios') {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }
+
+  // ✅ Mark onboarding done
+  markOnboardingComplete();
+
+  // 🚀 Then navigate to main app
+  const destination = user ? "MainApp" : "Welcome";
+  navigation.replace(destination);
+};
+
+
+  const handleSkip = () => {
+    if (Platform.OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } else {
+      Vibration.vibrate(100);
     }
+    handleComplete();
+  };
 
-    // Initialize step animations
-    for (let i = 0; i < setupSteps.length; i++) {
-      stepAnimations[i] = new Animated.Value(0);
-    }
-
-    // Start entrance animations
-    startEntranceAnimations();
-    
-    // Start particle system
-    startParticleAnimations();
-    
-    // Start glow effect
-    startGlowAnimation();
-
-    // Timer & dynamic step progression
-    const interval = setInterval(() => {
-      setSeconds((prev) => {
-        const next = prev + 1;
-        
-        // Auto navigate after 60s
-        if (next === 60) {
-          clearInterval(interval);
-          handleComplete();
-          return next;
-        }
-
-        // Enable skip after 30 seconds
-        if (next === 30 && !canSkip) {
-          setCanSkip(true);
-          animateSkipButton();
-        }
-
-        // Update current step based on time
-        let newStep = 0;
-        let totalTime = 0;
-        for (let i = 0; i < setupSteps.length; i++) {
-          totalTime += setupSteps[i].duration;
-          if (next <= totalTime) {
-            newStep = i;
-            break;
-          }
-        }
-
-        if (newStep !== currentStep) {
-          setCurrentStep(newStep);
-          animateStepTransition(newStep);
-          
-          // Haptic feedback for step change
-          if (Platform.OS === 'ios') {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          } else {
-            Vibration.vibrate(50);
-          }
-        }
-
-        return next;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const startEntranceAnimations = () => {
+  const startEntranceAnimations = () => { 
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        tension: 50,
-        friction: 8,
-        useNativeDriver: true,
-      }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, tension: 50, friction: 8, useNativeDriver: true }),
     ]).start();
   };
 
@@ -185,18 +142,8 @@ const GettingReadyScreen = ({ navigation }) => {
   const startGlowAnimation = () => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(glowAnim, {
-          toValue: 1,
-          duration: 2000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 0,
-          duration: 2000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
+        Animated.timing(glowAnim, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 0, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ])
     ).start();
   };
@@ -218,7 +165,7 @@ const GettingReadyScreen = ({ navigation }) => {
       useNativeDriver: true,
     }).start();
   };
-
+  
   const showStepTooltip = (step) => {
     setTooltipContent(`${step.title}: ${step.description}`);
     setShowTooltip(true);
@@ -239,71 +186,91 @@ const GettingReadyScreen = ({ navigation }) => {
     }, 3000);
   };
 
-  const handleSkip = () => {
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } else {
-      Vibration.vibrate(100);
-    }
-    handleComplete();
-  };
 
-  const handleComplete = () => {
-    // Success haptic feedback
-    if (Platform.OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
-    
-    navigation.replace("PaymentScreen");
-  };
+  // --- Master useEffect for Timers and Initial Animations ---
 
-  // Enhanced progress ring animation
   useEffect(() => {
+    // Initialize refs
+    for (let i = 0; i < 12; i++) {
+      particleAnimations[i] = new Animated.Value(0);
+    }
+    for (let i = 0; i < setupSteps.length; i++) {
+      stepAnimations[i] = new Animated.Value(0);
+    }
+
+    // Start background animations
+    startEntranceAnimations();
+    startParticleAnimations();
+    startGlowAnimation();
+
+    // Timer & dynamic step progression
+    const interval = setInterval(() => {
+      setSeconds((prev) => {
+        const next = prev + 1;
+        
+        if (next === 60) {
+          clearInterval(interval);
+          handleComplete();
+          return next;
+        }
+
+        if (next === 30 && !canSkip) {
+          setCanSkip(true);
+          animateSkipButton();
+        }
+
+        let newStep = 0;
+        let totalTime = 0;
+        for (let i = 0; i < setupSteps.length; i++) {
+          totalTime += setupSteps[i].duration;
+          if (next <= totalTime) {
+            newStep = i;
+            break;
+          }
+        }
+
+        if (newStep !== currentStep) {
+          setCurrentStep(newStep);
+          animateStepTransition(newStep);
+          
+          if (Platform.OS === 'ios') {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          } else {
+            Vibration.vibrate(50);
+          }
+        }
+
+        return next;
+      });
+    }, 1000);
+
+    // Progress Ring and Watch Hands Animation
     Animated.timing(progressAnim, {
       toValue: 360,
-      duration: 60000, // 1 minute
+      duration: 60000, 
       easing: Easing.linear,
-      useNativeDriver: false, // Changed for strokeDashoffset
+      useNativeDriver: false,
     }).start();
 
-    // Enhanced hands animation with more natural movement
     Animated.loop(
       Animated.sequence([
-        Animated.timing(handAnim, { 
-          toValue: 1, 
-          duration: 1200, 
-          useNativeDriver: true, 
-          easing: Easing.inOut(Easing.sin) 
-        }),
-        Animated.timing(handAnim, { 
-          toValue: 0, 
-          duration: 1200, 
-          useNativeDriver: true, 
-          easing: Easing.inOut(Easing.sin) 
-        }),
+        Animated.timing(handAnim, { toValue: 1, duration: 1200, useNativeDriver: true, easing: Easing.inOut(Easing.sin) }),
+        Animated.timing(handAnim, { toValue: 0, duration: 1200, useNativeDriver: true, easing: Easing.inOut(Easing.sin) }),
       ])
     ).start();
 
-    // Pulse animation for the watch
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 2000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 2000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulseAnim, { toValue: 1.05, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true, }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true, }),
       ])
     ).start();
-  }, []);
 
-  // Enhanced interpolations
+    return () => clearInterval(interval);
+  }, [currentStep, user]); // Added user to dependency array to satisfy ESLint and ensure re-run if auth state changes
+
+  // --- Interpolations and Calculations ---
+
   const handRotate = handAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ["-20deg", "20deg"],
@@ -311,6 +278,7 @@ const GettingReadyScreen = ({ navigation }) => {
 
   const radius = SIZE / 2 - 15;
   const circumference = 2 * Math.PI * radius;
+  
   const strokeDashoffset = progressAnim.interpolate({
     inputRange: [0, 360],
     outputRange: [circumference, 0],
@@ -318,6 +286,8 @@ const GettingReadyScreen = ({ navigation }) => {
 
   const currentStepData = setupSteps[currentStep];
   const progressPercentage = Math.round((seconds / 60) * 100);
+
+  // --- Sub-Components ---
 
   const FloatingParticles = () => (
     <View style={styles.particlesContainer}>
@@ -375,17 +345,17 @@ const GettingReadyScreen = ({ navigation }) => {
     >
       <Svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
         <Defs>
-          <RadialGradient id="watchGlow" cx="50%" cy="50%" r="50%">
+          <SvgLinearGradient id="watchGlow" x1="0%" y1="0%" x2="100%" y2="100%">
             <Stop offset="0%" stopColor="#00eaff" stopOpacity="0.3" />
             <Stop offset="70%" stopColor="#00eaff" stopOpacity="0.1" />
             <Stop offset="100%" stopColor="#00eaff" stopOpacity="0" />
-          </RadialGradient>
+          </SvgLinearGradient>
           <SvgLinearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <Stop offset="0%" stopColor={currentStepData.color} stopOpacity="1" />
             <Stop offset="100%" stopColor="#FF3B3B" stopOpacity="0.8" />
           </SvgLinearGradient>
         </Defs>
-        
+
         {/* Glow effect */}
         <Circle
           cx={SIZE / 2}
@@ -393,7 +363,7 @@ const GettingReadyScreen = ({ navigation }) => {
           r={radius + 20}
           fill="url(#watchGlow)"
         />
-        
+
         {/* Outer decorative ring */}
         <Circle
           cx={SIZE / 2}
@@ -404,7 +374,7 @@ const GettingReadyScreen = ({ navigation }) => {
           fill="none"
           strokeDasharray="5,5"
         />
-        
+
         {/* Base ring */}
         <Circle
           cx={SIZE / 2}
@@ -414,9 +384,9 @@ const GettingReadyScreen = ({ navigation }) => {
           strokeWidth={6}
           fill="none"
         />
-        
+
         {/* Progress ring */}
-        <Circle
+        <AnimatedCircle 
           cx={SIZE / 2}
           cy={SIZE / 2}
           r={radius}
@@ -428,7 +398,7 @@ const GettingReadyScreen = ({ navigation }) => {
           strokeLinecap="round"
           transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
         />
-        
+
         {/* Center dot */}
         <Circle
           cx={SIZE / 2}
@@ -436,10 +406,10 @@ const GettingReadyScreen = ({ navigation }) => {
           r={8}
           fill={currentStepData.color}
         />
-        
-        {/* Enhanced watch hands */}
+
+        {/* Watch hands */}
         <G transform={`translate(${SIZE / 2}, ${SIZE / 2})`}>
-          <Animated.Line
+          <AnimatedLine
             x1={0}
             y1={0}
             x2={0}
@@ -449,7 +419,7 @@ const GettingReadyScreen = ({ navigation }) => {
             strokeLinecap="round"
             transform={[{ rotate: handRotate }]}
           />
-          <Animated.Line
+          <AnimatedLine
             x1={0}
             y1={0}
             x2={0}
@@ -460,7 +430,7 @@ const GettingReadyScreen = ({ navigation }) => {
             transform={[{ rotate: handRotate }]}
           />
         </G>
-        
+
         {/* Hour markers */}
         {[...Array(12)].map((_, i) => {
           const angle = (i * 30) * (Math.PI / 180);
@@ -468,7 +438,7 @@ const GettingReadyScreen = ({ navigation }) => {
           const y1 = SIZE / 2 + (radius - 15) * Math.sin(angle - Math.PI / 2);
           const x2 = SIZE / 2 + (radius - 5) * Math.cos(angle - Math.PI / 2);
           const y2 = SIZE / 2 + (radius - 5) * Math.sin(angle - Math.PI / 2);
-          
+
           return (
             <Line
               key={i}
@@ -552,7 +522,9 @@ const GettingReadyScreen = ({ navigation }) => {
       </Animated.View>
     );
   };
-
+  
+  // --- Main Render ---
+  
   return (
     <LinearGradient 
       colors={["#0a0e27", "#16213e", "#1a2332"]} 
@@ -560,14 +532,18 @@ const GettingReadyScreen = ({ navigation }) => {
     >
       <FloatingParticles />
       
-      <Animated.View
-        style={[
-          styles.content,
+      {/* ScrollView Container for the main content */}
+      <AnimatedScrollView
+        contentContainerStyle={styles.content} // Content-specific styles here
+        style={[ // ScrollView-specific styles (like flex and animation) here
           {
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }],
+            flexGrow: 1, // Ensures the scroll view can grow
+            width: '100%',
           },
         ]}
+        showsVerticalScrollIndicator={false}
       >
         {/* Enhanced Header */}
         <View style={styles.header}>
@@ -672,7 +648,7 @@ const GettingReadyScreen = ({ navigation }) => {
             </TouchableOpacity>
           </Animated.View>
         )}
-      </Animated.View>
+      </AnimatedScrollView>
 
       {/* Tooltip */}
       <Tooltip />
@@ -682,11 +658,12 @@ const GettingReadyScreen = ({ navigation }) => {
 
 export default GettingReadyScreen;
 
+// --- Styles ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     padding: 20,
   },
   
@@ -711,11 +688,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     zIndex: 1,
+    paddingBottom: 50,
   },
   
   // Header
   header: {
     alignItems: "center",
+    marginTop: 10,
     marginBottom: 30,
   },
   titleContainer: {
@@ -872,6 +851,7 @@ const styles = StyleSheet.create({
   skipContainer: {
     width: "100%",
     alignItems: "center",
+    marginBottom: 20,
   },
   skipButton: {
     borderRadius: 12,

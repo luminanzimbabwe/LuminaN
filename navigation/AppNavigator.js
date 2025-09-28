@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../AuthContext";
 
@@ -20,25 +20,36 @@ import TabNavigator from "./TabNavigator";
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, isFirstTime } = useAuth(); // ✅ get isFirstTime
+  const [showSplash, setShowSplash] = useState(true);
 
-  // Show splash until auth loads
-  if (loading) return <SplashScreen />;
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading || showSplash) return <SplashScreen />;
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!user ? (
-        // Auth flow
+        // Auth Flow for unauthenticated users
         <>
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="GettingReady" component={GettingReadyScreen} />
           <Stack.Screen name="SetLocation" component={SetLocationScreen} />
           <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
         </>
+      ) : isFirstTime ? (
+        // ✅ First-time users go to GettingReady first
+        <Stack.Screen
+          name="GettingReady"
+          component={GettingReadyScreen}
+          options={{ gestureEnabled: false }}
+        />
       ) : (
-        // Logged-in → Main App flow
+        // Main App Flow for returning users
         <>
           <Stack.Screen name="MainApp" component={TabNavigator} />
           <Stack.Screen name="Notification" component={NotificationScreen} />

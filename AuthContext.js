@@ -7,21 +7,41 @@ export const AuthProvider = ({ children }) => {
   const [authToken, setAuthToken] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isFirstTime, setIsFirstTime] = useState(false); // 👈 NEW FLAG
   const BACKEND_URL = "https://backend-luminan.onrender.com";
 
   /** Sign in: stores auth token and user */
-  const signIn = (token, userData) => {
+  const signIn = async (token, userData, firstTime = false) => {
     if (!token || !userData) return;
+
     setAuthToken(token);
     setUser(userData);
-    AsyncStorage.setItem("authToken", token);
+    setIsFirstTime(firstTime); // 👈 set onboarding flag
+
+    await AsyncStorage.setItem("authToken", token);
+    await AsyncStorage.setItem("userData", JSON.stringify(userData));
+
+    // Persist firstTime flag only if it's true
+    if (firstTime) {
+      await AsyncStorage.setItem("isFirstTime", "true");
+    }
   };
 
   /** Sign out */
-  const signOut = () => {
+  const signOut = async () => {
     setAuthToken(null);
     setUser(null);
-    AsyncStorage.removeItem("authToken");
+    setIsFirstTime(false);
+
+    await AsyncStorage.removeItem("authToken");
+    await AsyncStorage.removeItem("userData");
+    await AsyncStorage.removeItem("isFirstTime");
+  };
+
+  /** Mark onboarding complete */
+  const markOnboardingComplete = async () => {
+    setIsFirstTime(false);
+    await AsyncStorage.setItem("isFirstTime", "false");
   };
 
   /** Validate token with backend */
@@ -31,10 +51,11 @@ export const AuthProvider = ({ children }) => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!res.ok) return false;
+
       const data = await res.json();
       setUser(data); // set user from backend
       return true;
@@ -47,17 +68,20 @@ export const AuthProvider = ({ children }) => {
   /** Initialize auth */
   const initAuth = async () => {
     setLoading(true);
+
     const token = await AsyncStorage.getItem("authToken");
+    const savedFirstTime = await AsyncStorage.getItem("isFirstTime");
 
     if (token) {
       const valid = await validateToken(token);
       if (valid) {
         setAuthToken(token);
+        setIsFirstTime(savedFirstTime === "true"); // restore onboarding state
       } else {
-        signOut();
+        await signOut();
       }
     } else {
-      signOut();
+      await signOut();
     }
 
     setLoading(false);
@@ -78,10 +102,13 @@ export const AuthProvider = ({ children }) => {
         method,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`,
+          Authorization: `Bearer ${authToken}`,
           ...options.headers,
         },
-        body: method !== "GET" && options.body ? JSON.stringify(options.body) : null,
+        body:
+          method !== "GET" && options.body
+            ? JSON.stringify(options.body)
+            : null,
       });
 
       if (!res.ok) {
@@ -105,10 +132,12 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         isLoggedIn,
+        isFirstTime,              // 👈 flag
         signIn,
         signOut,
         fetchUserAPI,
         initAuth,
+        markOnboardingComplete,   // 👈 clean exposed fn
       }}
     >
       {children}

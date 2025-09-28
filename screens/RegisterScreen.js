@@ -92,11 +92,12 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     if (response.ok && data.user && data.user.auth_token) {
-      // Save auth token & user in context
-      await signIn(data.user.auth_token, data.user);
+      // ✅ Save auth token & user in context, mark as first-time
+      await signIn(data.user.auth_token, data.user, true);
 
-      // Navigate directly to Home
-      navigation.replace("MainApp"); 
+      // ❌ remove manual navigation here
+      // navigation.replace("GettingReady");
+      // navigation will auto-route based on isFirstTime in AppNavigator
     } else {
       setErrors(data.errors || { general: data.error || "Registration failed" });
     }
@@ -108,6 +109,7 @@ const RegisterScreen = ({ navigation }) => {
     setLoading(false);
   }
 };
+
 
 
   return (
