@@ -1,4 +1,3 @@
-// screens/DriverSelectScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -13,6 +12,7 @@ import {
 import { useAuth } from "../AuthContext";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { ProgressBar } from "react-native-paper";
+import { PanGestureHandler, GestureHandlerRootView } from "react-native-gesture-handler";
 
 const { width, height } = Dimensions.get("window");
 const BACKEND_URL = "https://backend-luminan.onrender.com";
@@ -29,6 +29,8 @@ const DriverSelectScreen = ({ navigation, route }) => {
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [driverProgress, setDriverProgress] = useState({});
+  
+  const [driverPositions, setDriverPositions] = useState([]);  // Positions of drivers
 
   // Fetch drivers
   useEffect(() => {
@@ -59,8 +61,14 @@ const DriverSelectScreen = ({ navigation, route }) => {
       }
 
       const driver = drivers[index];
-      const safeTop = Math.random() * (height - 260);
-      const safeLeft = Math.random() * (width - 180);
+      let safeTop = Math.random() * (height - 260);
+      let safeLeft = Math.random() * (width - 180);
+
+      // Ensure drivers don't overlap
+      while (isOverlapping(safeTop, safeLeft)) {
+        safeTop = Math.random() * (height - 260);
+        safeLeft = Math.random() * (width - 180);
+      }
 
       setDisplayedDrivers((prev) => [
         ...prev,
@@ -87,6 +95,16 @@ const DriverSelectScreen = ({ navigation, route }) => {
       index++;
     }, 500);
   }, [drivers]);
+
+  // Check if the driver overlaps with any existing one
+  const isOverlapping = (top, left) => {
+    for (let pos of driverPositions) {
+      const dx = Math.abs(pos.left - left);
+      const dy = Math.abs(pos.top - top);
+      if (dx < 100 && dy < 100) return true; // Overlap threshold
+    }
+    return false;
+  };
 
   // Move drivers slightly
   useEffect(() => {
@@ -166,96 +184,114 @@ const DriverSelectScreen = ({ navigation, route }) => {
   }
 
   return (
-    <View style={styles.screen}>
-      {/* Search */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Search driver (name, phone, area, price...)"
-          placeholderTextColor="#888"
-          style={styles.searchInput}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.screen}>
+        {/* Search */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            placeholder="Search driver (name, phone, area, price...)"
+            placeholderTextColor="#888"
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
 
-      {/* Map simulation */}
-      <View style={styles.mapContainer}>
-        {filteredDrivers.length === 0 ? (
-          <View style={styles.center}>
-            <Text style={styles.noDriversText}>No drivers found</Text>
-          </View>
-        ) : (
-          filteredDrivers.map((driver) => {
-            const pricePerKg = driver.price_per_kg ?? 0;
-            const totalPrice = (weight || 1) * pricePerKg;
-            const progress = driverProgress[driver.driver_id || driver._id] ?? 0;
+        {/* Map simulation */}
+        <View style={styles.mapContainer}>
+          {filteredDrivers.length === 0 ? (
+            <View style={styles.center}>
+              <Text style={styles.noDriversText}>No drivers found</Text>
+            </View>
+          ) : (
+            filteredDrivers.map((driver) => {
+              const pricePerKg = driver.price_per_kg ?? 0;
+              const totalPrice = (weight || 1) * pricePerKg;
+              const progress = driverProgress[driver.driver_id || driver._id] ?? 0;
 
-            return (
-              <Animated.View
-                key={driver.driver_id || driver._id}
-                entering={FadeIn.delay(Math.random() * 500)}
-                style={[
-                  styles.card,
-                  {
-                    position: "absolute",
-                    top: driver.position.top,
-                    left: driver.position.left,
-                  },
-                ]}
-              >
-                <Text style={styles.name}>{driver.username}</Text>
-                <Text style={styles.company}>LUMINAN COMPANY</Text>
-                <Text style={styles.text}>Phone: {driver.phone ?? "Not provided"}</Text>
-                <Text style={styles.text}>
-                  Area: {driver.operational_area ?? "Not specified"}
-                </Text>
-                <Text style={styles.text}>Status: {driver.status ?? "Unknown"}</Text>
-                <Text style={styles.text}>Price/kg: ${pricePerKg.toFixed(2)}</Text>
-                <Text style={styles.text}>Est. Total: ${totalPrice.toFixed(2)}</Text>
+              return (
+                <PanGestureHandler
+                  key={driver.driver_id || driver._id}
+                  onGestureEvent={(e) => {
+                    const { translationX, translationY } = e.nativeEvent;
+                    const newTop = driver.position.top + translationY;
+                    const newLeft = driver.position.left + translationX;
 
-                <ProgressBar
-                  progress={progress}
-                  color="#00eaff"
-                  style={styles.progress}
-                />
-
-                <TouchableOpacity
-                  style={styles.selectButtonSmall}
-                  onPress={() => handleSelectDriver(driver)}
-                  disabled={assigning}
+                    setDisplayedDrivers((prev) => 
+                      prev.map((d) => 
+                        d.driver_id === driver.driver_id || d._id === driver._id
+                          ? { ...d, position: { top: newTop, left: newLeft } }
+                          : d
+                      )
+                    );
+                  }}
                 >
-                  {assigning && selectedDriver?.driver_id === driver.driver_id ? (
-                    <ActivityIndicator size="small" color="#000" />
-                  ) : (
-                    <Text style={styles.selectTextSmall}>Select</Text>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-            );
-          })
-        )}
-      </View>
+                  <Animated.View
+                    entering={FadeIn.delay(Math.random() * 500)}
+                    style={[
+                      styles.card,
+                      {
+                        position: "absolute",
+                        top: driver.position.top,
+                        left: driver.position.left,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.name}>{driver.username}</Text>
+                    <Text style={styles.company}>LUMINAN COMPANY</Text>
+                                        <Text style={styles.text}>Phone: {driver.phone ?? "Not provided"}</Text>
+                    <Text style={styles.text}>
+                      Area: {driver.operational_area ?? "Not specified"}
+                    </Text>
+                    <Text style={styles.text}>Status: {driver.status ?? "Unknown"}</Text>
+                    <Text style={styles.text}>Price/kg: ${pricePerKg.toFixed(2)}</Text>
+                    <Text style={styles.text}>Est. Total: ${totalPrice.toFixed(2)}</Text>
 
-      {/* Loading Indicator for Driver Assignment */}
-      {assigning && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#00eaff" />
-          <Text style={styles.loadingText}>Assigning driver...</Text>
+                    <ProgressBar
+                      progress={progress}
+                      color="#00eaff"
+                      style={styles.progress}
+                    />
+
+                    <TouchableOpacity
+                      style={styles.selectButtonSmall}
+                      onPress={() => handleSelectDriver(driver)}
+                      disabled={assigning}
+                    >
+                      {assigning && selectedDriver?.driver_id === driver.driver_id ? (
+                        <ActivityIndicator size="small" color="#000" />
+                      ) : (
+                        <Text style={styles.selectTextSmall}>Select</Text>
+                      )}
+                    </TouchableOpacity>
+                  </Animated.View>
+                </PanGestureHandler>
+              );
+            })
+          )}
         </View>
-      )}
 
-      {/* Success Modal */}
-      <Modal transparent visible={successModal} animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.successText}>
-              Driver {selectedDriver?.username} assigned successfully!
-            </Text>
-            <Text style={styles.successCompany}>LUMINAN COMPANY</Text>
+        {/* Loading Indicator for Driver Assignment */}
+        {assigning && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#00eaff" />
+            <Text style={styles.loadingText}>Assigning driver...</Text>
           </View>
-        </View>
-      </Modal>
-    </View>
+        )}
+
+        {/* Success Modal */}
+        <Modal transparent visible={successModal} animationType="fade">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.successText}>
+                Driver {selectedDriver?.username} assigned successfully!
+              </Text>
+              <Text style={styles.successCompany}>LUMINAN COMPANY</Text>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </GestureHandlerRootView>
   );
 };
 
@@ -338,3 +374,4 @@ const styles = StyleSheet.create({
   successText: { color: "#00eaff", fontSize: 20, fontWeight: "700" },
   successCompany: { color: "#00aaff", fontSize: 24, fontWeight: "900", marginTop: 8 },
 });
+
