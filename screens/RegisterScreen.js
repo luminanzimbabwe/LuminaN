@@ -95,7 +95,7 @@ const RegisterScreen = ({ navigation }) => {
       // ✅ Save auth token & user in context, mark as first-time
       await signIn(data.user.auth_token, data.user, true);
 
-      // ❌ remove manual navigation here
+      
       // navigation.replace("GettingReady");
       // navigation will auto-route based on isFirstTime in AppNavigator
     } else {
