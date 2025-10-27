@@ -43,7 +43,7 @@ const UserOrderTrackingScreen = ({ navigation, route }) => {
     useEffect(() => {
         const fetchOrderDetails = async () => {
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/v1/orders/${orderId}/tracking-details/`);
+                const response = await fetch(`https://backend-luminan.onrender.com/api/v1/orders/${orderId}/tracking-details/`);
                 if (!response.ok) {
                     console.error(`Server responded with status: ${response.status}`);
                     return;
@@ -74,7 +74,7 @@ const UserOrderTrackingScreen = ({ navigation, route }) => {
     useEffect(() => {
         if (!liveOrder.driverId) return; // wait for driver assignment
 
-        const wsUrl = `ws://192.168.100.24:8000/ws/track/${orderId}/`;
+        const wsUrl = `wss://backend-luminan.onrender.com/ws/track/${orderId}/`;
         wsRef.current = new WebSocket(wsUrl);
 
         wsRef.current.onopen = () => console.log("WebSocket connected to backend.");
