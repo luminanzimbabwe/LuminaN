@@ -1,4 +1,3 @@
-// screens/GettingReadyScreen.js
 import React, { useEffect, useRef, useState } from "react";
 import {
     View,
@@ -19,28 +18,24 @@ import * as Haptics from "expo-haptics";
 import Svg, { Circle, Line, G, Defs, Stop, LinearGradient as SvgLinearGradient } from "react-native-svg";
 import { Ionicons } from "@expo/vector-icons";
 
-// 💡 NEW: Import the useAuth hook
-import { useAuth } from '../AuthContext'; 
+// 💡 Import the useAuth hook
+import { useAuth } from "../context/AuthContext";
 
 // --- Responsive Setup ---
 const { width, height } = Dimensions.get("window");
-// Check if screen height is smaller than 700px (e.g., iPhone SE/mini size)
-const IS_SMALL_SCREEN = height < 700; 
-const SIZE = Math.min(width * 0.7, 280); // Enhanced responsive sizing (kept original logic)
 
-// 💡 FIX: Create the animated versions of the SVG components using the helper
+const IS_SMALL_SCREEN = height < 700;
+const SIZE = Math.min(width * 0.7, 280);
+
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const AnimatedLine = Animated.createAnimatedComponent(Line);
-
-// Use Animated.ScrollView instead of Animated.View for scrollable content
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 
 const GettingReadyScreen = ({ navigation }) => {
-    // 💡 NEW: Access user state from AuthContext
-    const { user, markOnboardingComplete } = useAuth();
     
-
+    const { user, markSetupComplete } = useAuth();
+    
     const [seconds, setSeconds] = useState(0);
     const [currentStep, setCurrentStep] = useState(0);
     const [showTooltip, setShowTooltip] = useState(false);
@@ -48,7 +43,7 @@ const GettingReadyScreen = ({ navigation }) => {
     const [canSkip, setCanSkip] = useState(false);
 
     
-    // Animation Refs
+    
     const progressAnim = useRef(new Animated.Value(0)).current;
     const handAnim = useRef(new Animated.Value(0)).current;
     const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -60,7 +55,7 @@ const GettingReadyScreen = ({ navigation }) => {
     const skipButtonAnim = useRef(new Animated.Value(0)).current;
     const glowAnim = useRef(new Animated.Value(0)).current;
 
-    // Setup Steps Data
+    
     const setupSteps = [
         {
             id: 0,
@@ -73,7 +68,7 @@ const GettingReadyScreen = ({ navigation }) => {
         {
             id: 1,
             title: "Setting Up Profile",
-            description: "Personalizing your LuminaN experience",
+            description: "Personalizing your GasLT experience",
             icon: "person-circle",
             color: "#8b5cf6",
             duration: 20,
@@ -96,20 +91,21 @@ const GettingReadyScreen = ({ navigation }) => {
         },
     ];
 
-    // --- Utility Functions (Omitted for brevity, kept original functions) ---
+    // --- Utility Functions ---
 
     const handleComplete = () => {
     if (Platform.OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
 
-    // ✅ Mark onboarding done
-    markOnboardingComplete();
+    if (markSetupComplete && typeof markSetupComplete === 'function') {
+        markSetupComplete();
+    }
 
-    // 🚀 Then navigate to main app
-    const destination = user ? "MainApp" : "Welcome";
+   
+    const destination = "MainTabs"; 
     navigation.replace(destination);
-    };
+};
 
 
     const handleSkip = () => {
@@ -121,6 +117,7 @@ const GettingReadyScreen = ({ navigation }) => {
         handleComplete();
     };
 
+    
     const startEntranceAnimations = () => { 
         Animated.parallel([
             Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
@@ -189,7 +186,7 @@ const GettingReadyScreen = ({ navigation }) => {
     };
 
 
-    // --- Master useEffect for Timers and Initial Animations (kept original logic) ---
+    // --- Master useEffect for Timers and Initial Animations ---
 
     useEffect(() => {
         // Initialize refs
@@ -269,9 +266,7 @@ const GettingReadyScreen = ({ navigation }) => {
         ).start();
 
         return () => clearInterval(interval);
-    }, [currentStep, user]); // Added user to dependency array to satisfy ESLint and ensure re-run if auth state changes
-
-    // --- Interpolations and Calculations (kept original logic) ---
+    }, [currentStep, user, markSetupComplete]);
 
     const handRotate = handAnim.interpolate({
         inputRange: [0, 1],
@@ -289,7 +284,7 @@ const GettingReadyScreen = ({ navigation }) => {
     const currentStepData = setupSteps[currentStep];
     const progressPercentage = Math.round((seconds / 60) * 100);
 
-    // --- Sub-Components (kept original logic) ---
+    // --- Sub-Components ---
 
     const FloatingParticles = () => (
         <View style={styles.particlesContainer}>
@@ -450,6 +445,7 @@ const GettingReadyScreen = ({ navigation }) => {
                             y2={y2}
                             stroke="rgba(255,255,255,0.5)"
                             strokeWidth={i % 3 === 0 ? 3 : 1}
+                            strokeLinecap="round"
                         />
                     );
                 })}
@@ -534,20 +530,18 @@ const GettingReadyScreen = ({ navigation }) => {
         >
             <FloatingParticles />
             
-            {/* ScrollView Container for the main content */}
             <AnimatedScrollView
-                contentContainerStyle={styles.content} // Content-specific styles here
-                style={[ // ScrollView-specific styles (like flex and animation) here
+                contentContainerStyle={styles.content}
+                style={[
                     {
                         opacity: fadeAnim,
                         transform: [{ translateY: slideAnim }],
-                        flexGrow: 1, // Ensures the scroll view can grow
+                        flexGrow: 1,
                         width: '100%',
                     },
                 ]}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Enhanced Header */}
                 <View style={styles.header}>
                     <Animated.View
                         style={[
@@ -569,14 +563,12 @@ const GettingReadyScreen = ({ navigation }) => {
                     </Animated.View>
                     
                     <Text style={styles.subtitle}>
-                        Setting up your premium LuminaN experience
+                        Setting up your premium GasLT experience
                     </Text>
                 </View>
 
-                {/* Enhanced Watch */}
                 <EnhancedWatch />
 
-                {/* Progress Info */}
                 <View style={styles.progressInfo}>
                     <View style={styles.timerContainer}>
                         <Text style={styles.timer}>{seconds}s</Text>
@@ -600,10 +592,8 @@ const GettingReadyScreen = ({ navigation }) => {
                     </View>
                 </View>
 
-                {/* Step Indicator */}
                 <StepIndicator />
 
-                {/* Enhanced Note */}
                 <View style={styles.noteContainer}>
                     <LinearGradient
                         colors={["rgba(0,234,255,0.1)", "rgba(0,234,255,0.05)"]}
@@ -612,12 +602,11 @@ const GettingReadyScreen = ({ navigation }) => {
                         <Ionicons name="information-circle" size={20} color="#00eaff" />
                         <Text style={styles.note}>
                             Your account is being secured with enterprise-grade encryption. 
-                            Experience the magic of LuminaN!
+                            Experience the magic of GasLT!
                         </Text>
                     </LinearGradient>
                 </View>
 
-                {/* Skip Button */}
                 {canSkip && (
                     <Animated.View
                         style={[
@@ -652,251 +641,226 @@ const GettingReadyScreen = ({ navigation }) => {
                 )}
             </AnimatedScrollView>
 
-            {/* Tooltip */}
             <Tooltip />
         </LinearGradient>
     );
 };
 
-export default GettingReadyScreen;
-
-// --- Styles ---
+// --- Stylesheet  ---
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: "center",
         justifyContent: "flex-start",
-        padding: 20,
+        paddingTop: height * 0.08,
     },
-    
-    // Particles
-    particlesContainer: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 0,
-    },
-    particle: {
-        position: "absolute",
-        width: 4,
-        height: 4,
-        borderRadius: 2,
-    },
-    
-    // Content
     content: {
+        flexGrow: 1,
         alignItems: "center",
-        width: "100%",
-        zIndex: 1,
-        paddingBottom: 50,
+        paddingHorizontal: 20,
+        paddingBottom: 40,
+        // Small screen adjustment
+        paddingTop: IS_SMALL_SCREEN ? 10 : 30,
     },
-    
-    // --- RESPONSIVE ADJUSTMENTS START HERE ---
-    
-    // Header: Reduced margins for smaller screens
     header: {
-        alignItems: "center",
-        marginTop: IS_SMALL_SCREEN ? 10 : 20, 
-        marginBottom: IS_SMALL_SCREEN ? 15 : 30, 
+        alignItems: 'center',
+        marginBottom: IS_SMALL_SCREEN ? 20 : 40,
     },
     titleContainer: {
-        alignItems: "center",
         marginBottom: 8,
+        alignItems: 'center',
     },
-    // Title: Reduced font size for smaller screens
     title: {
-        color: "#fff",
-        fontSize: IS_SMALL_SCREEN ? 28 : 32, // Adaptive size
+        fontSize: IS_SMALL_SCREEN ? 28 : 36,
         fontWeight: "bold",
-        textAlign: "center",
-        letterSpacing: 1,
-        textShadowColor: "rgba(0,234,255,0.3)",
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 10,
+        color: "#fff",
+        letterSpacing: 1.5,
     },
     titleUnderline: {
-        width: 60,
         height: 3,
-        backgroundColor: "#00eaff",
+        width: 80,
+        backgroundColor: '#00eaff',
         borderRadius: 2,
-        marginTop: 8,
+        marginTop: 4,
     },
     subtitle: {
-        color: "#888",
-        fontSize: 16,
+        fontSize: IS_SMALL_SCREEN ? 14 : 16,
+        color: "#bbb",
         textAlign: "center",
-        letterSpacing: 0.5,
+        marginBottom: IS_SMALL_SCREEN ? 10 : 20,
+        maxWidth: '80%',
     },
-    
-    // Watch: Reduced vertical margins for smaller screens
     watchContainer: {
-        marginVertical: IS_SMALL_SCREEN ? 15 : 30, // Adaptive size
-        alignItems: "center",
-        justifyContent: "center",
+        marginBottom: IS_SMALL_SCREEN ? 20 : 40,
     },
-    
-    // Progress Info: Reduced margins for smaller screens
     progressInfo: {
-        alignItems: "center",
-        marginBottom: IS_SMALL_SCREEN ? 15 : 30, // Adaptive size
         width: "100%",
+        maxWidth: 350,
+        alignItems: "center",
+        marginBottom: IS_SMALL_SCREEN ? 10 : 20,
     },
     timerContainer: {
-        flexDirection: "row",
-        alignItems: "baseline",
-        marginBottom: 20,
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        marginBottom: 10,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        borderRadius: 20,
     },
-    // Timer: Reduced font size for smaller screens
     timer: {
-        color: "#00eaff",
-        fontSize: IS_SMALL_SCREEN ? 24 : 28, // Adaptive size
-        fontWeight: "bold",
+        fontSize: IS_SMALL_SCREEN ? 32 : 40,
+        fontWeight: "300",
+        color: "#fff",
+        fontVariant: ['tabular-nums'],
     },
     timerSeparator: {
-        color: "#888",
-        fontSize: 20,
-        marginHorizontal: 8,
+        fontSize: IS_SMALL_SCREEN ? 20 : 24,
+        color: '#888',
+        marginHorizontal: 2,
     },
     timerTotal: {
+        fontSize: IS_SMALL_SCREEN ? 18 : 22,
         color: "#888",
-        fontSize: 20,
     },
     percentage: {
+        fontSize: IS_SMALL_SCREEN ? 14 : 16,
         color: "#00eaff",
-        fontSize: 16,
-        marginLeft: 8,
-        fontWeight: "600",
+        fontWeight: 'bold',
+        marginLeft: 10,
     },
-    
-    // Current Step (no significant changes needed, layout is flexible)
     currentStepContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(255,255,255,0.05)",
-        borderRadius: 16,
-        padding: 16,
-        width: "100%",
-        borderWidth: 1,
-        borderColor: "rgba(0,234,255,0.2)",
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 12,
+        padding: 15,
+        width: '100%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 8,
     },
     stepIcon: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
     },
     stepText: {
         flex: 1,
     },
     stepTitle: {
-        fontSize: 16,
-        fontWeight: "bold",
-        marginBottom: 2,
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 3,
     },
     stepDescription: {
-        color: "#888",
         fontSize: 14,
-        lineHeight: 18,
+        color: '#ccc',
     },
-    
-    // Step Indicator: Improved horizontal distribution and label handling
     stepIndicator: {
-        flexDirection: "row",
-        justifyContent: "space-around", // Use space-around for better spacing
-        width: "100%",
-        marginBottom: 30,
-        paddingHorizontal: 0, // Removed padding to maximize available width
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        width: '100%',
+        maxWidth: 350,
+        marginTop: IS_SMALL_SCREEN ? 10 : 20,
+        marginBottom: IS_SMALL_SCREEN ? 20 : 40,
     },
     stepItem: {
-        alignItems: "center",
-        // Removed flex: 1 to let content determine item width, rely on 'space-around'
+        alignItems: 'center',
+        flex: 1,
     },
     stepDot: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 8,
-        borderWidth: 2,
-        borderColor: "rgba(255,255,255,0.1)",
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 5,
     },
     stepLabel: {
         fontSize: 10,
-        fontWeight: "600",
-        textAlign: "center",
-        maxWidth: 70, // Added max-width to slightly limit the label text area
+        textAlign: 'center',
+        marginTop: 4,
+        fontWeight: '600',
     },
-    
-    // Note (no significant changes needed)
-    noteContainer: {
-        width: "100%",
-        borderRadius: 16,
-        overflow: "hidden",
-        marginBottom: 20,
-    },
-    noteGradient: {
-        flexDirection: "row",
-        alignItems: "center",
-        padding: 16,
-        borderWidth: 1,
-        borderColor: "rgba(0,234,255,0.2)",
-    },
-    note: {
-        color: "#e5e5e5",
-        fontSize: 14,
-        lineHeight: 20,
-        marginLeft: 12,
-        flex: 1,
-    },
-    
-    // Skip Button (no significant changes needed)
-    skipContainer: {
-        width: "100%",
-        alignItems: "center",
-        marginBottom: 20,
-    },
-    skipButton: {
-        borderRadius: 12,
-        overflow: "hidden",
-    },
-    skipGradient: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.2)",
-    },
-    skipText: {
-        color: "#888",
-        fontSize: 14,
-        fontWeight: "600",
-        marginLeft: 8,
-    },
-    
-    // Tooltip (no significant changes needed)
     tooltip: {
-        position: "absolute",
-        top: "40%",
-        left: 20,
-        right: 20,
-        zIndex: 1000,
-        borderRadius: 16,
-        overflow: "hidden",
+        position: 'absolute',
+        bottom: height * 0.15,
+        alignSelf: 'center',
+        padding: 10,
+        borderRadius: 10,
+        zIndex: 10,
     },
     tooltipBlur: {
-        padding: 16,
-        backgroundColor: "rgba(0,0,0,0.8)",
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 10,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
     },
     tooltipText: {
-        color: "#fff",
+        color: '#fff',
         fontSize: 14,
-        textAlign: "center",
-        lineHeight: 20,
+        fontWeight: '500',
+    },
+    noteContainer: {
+        width: '100%',
+        maxWidth: 350,
+        marginBottom: IS_SMALL_SCREEN ? 10 : 30,
+    },
+    noteGradient: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 15,
+        borderRadius: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: '#00eaff',
+    },
+    note: {
+        marginLeft: 10,
+        fontSize: 13,
+        color: '#fff',
+        flexShrink: 1,
+    },
+    skipContainer: {
+        width: '100%',
+        maxWidth: 350,
+    },
+    skipButton: {
+        width: '100%',
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    skipGradient: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+    },
+    skipText: {
+        marginLeft: 8,
+        fontSize: 16,
+        color: '#ccc',
+        fontWeight: '600',
+    },
+    particlesContainer: {
+        ...StyleSheet.absoluteFillObject,
+        overflow: 'hidden',
+    },
+    particle: {
+        position: 'absolute',
+        width: 6,
+        height: 6,
+        borderRadius: 3,
     },
 });
+
+export default GettingReadyScreen;

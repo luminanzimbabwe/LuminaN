@@ -13,6 +13,7 @@ import {
   ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { BASE_URL } from "../config/api.config";
 
 const ResetPasswordScreen = ({ navigation }) => {
   const [step, setStep] = useState(1); // 1 = forgot, 2 = reset
@@ -23,7 +24,7 @@ const ResetPasswordScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const BACKEND_URL = "https://backend-luminan.onrender.com/api";
+ 
 
   // Step 1: Send reset code
   const handleSendCode = async () => {
@@ -35,7 +36,7 @@ const ResetPasswordScreen = ({ navigation }) => {
     try {
       setLoading(true);
       setErrorMessage("");
-      const response = await fetch(`${BACKEND_URL}/forgot-password/`, {
+  const response = await fetch(`${BASE_URL}/forgot-password/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -74,7 +75,7 @@ const ResetPasswordScreen = ({ navigation }) => {
     try {
       setLoading(true);
       setErrorMessage("");
-      const response = await fetch(`${BACKEND_URL}/reset-password/`, {
+  const response = await fetch(`${BASE_URL}/reset-password/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -92,7 +93,7 @@ const ResetPasswordScreen = ({ navigation }) => {
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
       } else {
-        // Show all possible errors from backend
+      
         if (data.error) setErrorMessage(data.error);
         if (data.details) setErrorMessage(prev => prev + "\n" + data.details);
         if (!data.error && !data.details) setErrorMessage(JSON.stringify(data));

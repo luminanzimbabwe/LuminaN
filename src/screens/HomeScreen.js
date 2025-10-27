@@ -1,4 +1,5 @@
-// screens/NewHomeScreen.js
+// screens/HomeScreen.js
+
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -10,40 +11,45 @@ import {
   Animated,
   Dimensions,
   Platform,
+  Linking,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Rect, Text as SvgText, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useAuth } from "../AuthContext";
-
+import { useAuth } from "../context/AuthContext";
+import { apiGetCurrentUser } from "../services/auth.service";
 
 const { width, height } = Dimensions.get("window");
 
+// Products aligned with backend MongoDB _id values
 const PRODUCTS = [
-  { id: "68bb50881d2ce4f238eec4a9", name: "5kg Cylinder", weight: 5, price_per_kg: 2 },
-  { id: "68bb50881d2ce4f238eec4aa", name: "7kg Cylinder", weight: 7, price_per_kg: 2 },
-  { id: "68bb50881d2ce4f238eec4ab", name: "9kg Cylinder", weight: 9, price_per_kg: 2 },
-  { id: "68bb50881d2ce4f238eec4ac", name: "14kg Cylinder", weight: 14, price_per_kg: 1.8 },
-  { id: "68bb50881d2ce4f238eec4ad", name: "45kg Cylinder", weight: 45, price_per_kg: 1.8 },
+  { id: "68c606a1ac29609e11f8f941", name: "5kg Cylinder", weight: 5, description: "Ideal for small households", surcharge: 0 },
+  { id: "68c606a1ac29609e11f8f942", name: "7kg Cylinder", weight: 7, description: "Perfect for medium usage", surcharge: 0 },
+  { id: "68c606a1ac29609e11f8f943", name: "9kg Cylinder", weight: 9, description: "Great for larger families", surcharge: 0 },
+  { id: "68c606a1ac29609e11f8f944", name: "14kg Cylinder", weight: 14, description: "Best for heavy usage", surcharge: 0 },
+  { id: "68c606a1ac29609e11f8f945", name: "45kg Cylinder", weight: 45, description: "Commercial use", surcharge: 0 },
 ];
 
-const packages = [
-  { id: 1, weight: "5kg", description: "Ideal for small households", icon: "flame", popular: false },
-  { id: 2, weight: "7kg", description: "Perfect for medium usage", icon: "flame", popular: false },
-  { id: 3, weight: "9kg", description: "Great for larger families", icon: "flame", popular: true },
-  { id: 4, weight: "14kg", description: "Best for heavy usage", icon: "flame", popular: false },
-  { id: 5, weight: "45kg", description: "Commercial use", icon: "flame", popular: false },
-];
+// Build UI packages from PRODUCTS so each package carries the real product id
+const packages = PRODUCTS.map((p, idx) => ({
+  id: p.id, // Mongo ObjectId string
+  weight: `${p.weight}kg`,
+  description: `${p.weight}kg cylinder`,
+  icon: "flame",
+  popular: idx === 2,
+  // display price computed from price_per_kg * weight for UI only
+ // price: (Number(p.price_per_kg || 0) * Number(p.weight || 1)).toFixed(2),
+}));
 
-const BACKEND_URL = "https://backend-luminan.onrender.com";
-
-const NewHomeScreen = ({ navigation }) => {
+const HomeScreen = ({ navigation }) => {
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [customNotes, setCustomNotes] = useState("");
   const [customCylinders, setCustomCylinders] = useState("");
   const [customWeight, setCustomWeight] = useState("");
   const [unreadCount, setUnreadCount] = useState(0);
   const [showCustomForm, setShowCustomForm] = useState(false);
+
+  const { user, token, isLoading, isAuthenticated } = useAuth();
   
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -52,7 +58,7 @@ const NewHomeScreen = ({ navigation }) => {
   const customFormAnim = useRef(new Animated.Value(0)).current;
   const packageAnimations = useRef(packages.map(() => new Animated.Value(0))).current;
   const confirmButtonScale = useRef(new Animated.Value(1)).current;
-  const { authToken, user, isLoggedIn } = useAuth();
+
 
 
 
@@ -60,12 +66,7 @@ const NewHomeScreen = ({ navigation }) => {
   
 
 
-  useEffect(() => {
-  if (authToken) {
-    fetchUnreadNotifications();
-  }
-}, [authToken]);
-
+ 
   useEffect(() => {
     
     // Entrance animations
@@ -99,30 +100,33 @@ const NewHomeScreen = ({ navigation }) => {
     
   }, []);
 
+  // Refresh profile/unread count when token is present
+  useEffect(() => {
+    let mounted = true;
+    const refresh = async () => {
+      try {
+        if (!token) return;
+        const profile = await apiGetCurrentUser(token);
+        if (!mounted) return;
+       
+        const unread = profile?.unread_notifications ?? profile?.unreadCount ?? 0;
+        setUnreadCount(unread);
+      } catch (err) {
+        console.warn('[HomeScreen] failed to refresh profile:', err?.message || err);
+        // If token turned out to be invalid, navigate to Welcome to force re-auth
+        if (err && err.status === 401) {
+          navigation.replace('Welcome');
+        }
+      }
+    };
 
-  const fetchUnreadNotifications = async () => {
-  if (!authToken) return; // Use authToken directly
+    refresh();
 
-  try {
-    const res = await fetch(`${BACKEND_URL}/notifications/`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`, // Pass the single token
-      },
-    });
+    return () => { mounted = false; };
+  }, [token]);
 
-    const data = await res.json();
-    if (res.ok && data.notifications) {
-      const unread = data.notifications.filter(n => !n.read).length;
-      setUnreadCount(unread);
-    } else {
-      console.warn("Failed to fetch notifications", data);
-    }
-  } catch (err) {
-    console.error("Failed to fetch notifications:", err);
-  }
-};
+
+
 
 
   
@@ -213,8 +217,14 @@ const NewHomeScreen = ({ navigation }) => {
     }
   };
 
-  const Logo = () => (
-    <Svg width="140" height="60" viewBox="0 0 180 80">
+  const handleChatbotToggle = () => {
+    navigation.navigate('ChatbotScreen');
+  };
+
+
+
+  const Logo = ({ width = 140, height = 60 }) => (
+    <Svg width={width} height={height} viewBox="0 0 180 80">
       <Defs>
         <RadialGradient id="logoGrad" cx="50%" cy="50%" r="50%">
           <Stop offset="0%" stopColor="#00eaff" stopOpacity="1" />
@@ -351,7 +361,7 @@ const NewHomeScreen = ({ navigation }) => {
         </Animated.View>
 
         {/* Welcome Section */}
-        <Animated.View 
+        <Animated.View
           style={[
             styles.welcomeSection,
             {
@@ -369,7 +379,7 @@ const NewHomeScreen = ({ navigation }) => {
               "For it's like magic, but powered by code, logic, networks, and a bit of mystery."
             </Text>
             <Text style={styles.authorText}>— thisismeprivateisaacngirazi</Text>
-            
+
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
                 <Ionicons name="flash" size={20} color="#facc15" />
@@ -385,7 +395,38 @@ const NewHomeScreen = ({ navigation }) => {
               </View>
             </View>
           </LinearGradient>
-        </Animated.View>
+
+          {/* Emergency Gas Delivery Button 
+          <View style={styles.emergencyButtonContainer}>
+            <TouchableOpacity
+              style={styles.emergencyButton}
+              onPress={() => {
+                Linking.openURL('tel:0785748130/29');
+              }}
+            >
+              <LinearGradient
+                colors={["#FF3B3B", "#FF6B6B"]}
+                style={styles.emergencyGradient}
+              >
+                <Ionicons name="warning" size={16} color="#fff" />
+                <Text style={styles.emergencyText}>🚨 Emergency Gas</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View> */}
+        </Animated.View> 
+
+        {/* Trusted by Users Section */}
+        <View style={styles.trustedSection}>
+          <TouchableOpacity style={styles.trustedButton}>
+            <LinearGradient
+              colors={["rgba(34,197,94,0.2)", "rgba(34,197,94,0.05)"]}
+              style={styles.trustedGradient}
+            >
+              <Ionicons name="shield-checkmark" size={24} color="#22c55e" />
+              <Text style={styles.trustedText}>Trusted by Thousands of Users</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
         {/* Packages Section */}
         <View style={styles.packagesSection}>
@@ -463,27 +504,27 @@ const NewHomeScreen = ({ navigation }) => {
                 />
               </View>
               <View style={styles.inputContainer}>
-  <Text style={styles.inputLabel}>Weight (kg)</Text>
-  <View style={{ flexDirection: "row", alignItems: "center" }}>
-    <TextInput
-      style={[styles.customInputSmall, { flex: 1 }]}
-      placeholder="0"
-      placeholderTextColor="#888"
-      keyboardType="numeric"
-      value={customWeight}
-      onChangeText={(text) => {
-        // Allow only numbers and a single decimal point
-        const cleaned = text.replace(/[^0-9.]/g, "");
-        setCustomWeight(cleaned);
-        setSelectedPackage(null);
-        console.log("DEBUG customWeight raw:", text, "| cleaned:", cleaned);
-      }}
-    />
-    <Text style={{ color: "#fff", marginLeft: 8, fontWeight: "600" }}>kg</Text>
-  </View>
-</View>
-</View>
-            
+                <Text style={styles.inputLabel}>Weight (kg)</Text>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <TextInput
+                    style={[styles.customInputSmall, { flex: 1 }]}
+                    placeholder="0"
+                    placeholderTextColor="#888"
+                    keyboardType="numeric"
+                    value={customWeight}
+                    onChangeText={(text) => {
+                      // Allow only numbers and a single decimal point
+                      const cleaned = text.replace(/[^0-9.]/g, "");
+                      setCustomWeight(cleaned);
+                      setSelectedPackage(null);
+                      console.log("DEBUG customWeight raw:", text, "| cleaned:", cleaned);
+                    }}
+                  />
+                  <Text style={{ color: "#fff", marginLeft: 8, fontWeight: "600" }}>kg</Text>
+                </View>
+              </View>
+            </View>
+
             <View style={styles.notesContainer}>
               <Text style={styles.inputLabel}>Additional Notes</Text>
               <TextInput
@@ -529,11 +570,27 @@ const NewHomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
+
+      {/* Floating Chatbot Button */}
+      <TouchableOpacity
+        style={styles.chatbotButton}
+        onPress={handleChatbotToggle}
+      >
+        <LinearGradient
+          colors={["#000000", "#000000"]}
+          style={styles.chatbotGradient}
+        >
+          <View style={{ alignItems: "center" }}>
+            <Logo width={50} height={25} />
+            <Text style={{ color: "#fff", fontSize: 10, fontWeight: "bold", marginTop: 2 }}>Chat</Text>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
     </LinearGradient>
   );
 };
 
-export default NewHomeScreen;
+export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -564,7 +621,7 @@ const styles = StyleSheet.create({
   },
   badgeText: { color: "#fff", fontSize: 11, fontWeight: "bold" },
   
-  welcomeSection: { marginHorizontal: 20, marginBottom: 30 },
+  welcomeSection: { marginHorizontal: 20, marginBottom: 30, position: 'relative' },
   welcomeGradient: {
     padding: 20,
     borderRadius: 20,
@@ -606,7 +663,55 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
+
+  // Emergency Button Styles
+  emergencyButton: {
+    position: "absolute",
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: '-50%' }, { translateY: '-50%' }],
+    borderRadius: 20,
+    overflow: "hidden",
+    elevation: 8,
+    shadowColor: "#FF3B3B",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+   
+  },
+  emergencyGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    gap: 5,
+  },
+  emergencyText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+
+  // Trusted by Users Section
+  trustedSection: { marginHorizontal: 20, marginBottom: 20 },
+  trustedButton: {
+    borderRadius: 15,
+    overflow: "hidden",
   
+  },
+  trustedGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 15,
+    gap: 10,
+  },
+  trustedText: {
+    color: "#22c55e",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
   packagesSection: { marginBottom: 30 },
   sectionTitle: { 
     color: "#fff", 
@@ -841,9 +946,104 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 10,
   },
-  confirmText: { 
-    color: "#fff", 
-    fontWeight: "bold", 
+  confirmText: {
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 18,
+  },
+
+  // Chatbot Styles
+  chatbotButton: {
+    position: "absolute",
+    bottom: 80,
+    right: 20,
+    borderRadius: 50,
+    overflow: "hidden",
+    elevation: 8,
+    shadowColor: "#00eaff",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  chatbotGradient: {
+    padding: 15,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  chatbotModal: {
+    height: "70%",
+    backgroundColor: "#0a0e27",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: "hidden",
+  },
+  chatbotHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.1)",
+  },
+  chatbotHeaderContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  chatbotTitle: {
+    color: "#00eaff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  messagesList: {
+    flex: 1,
+    padding: 10,
+  },
+  messagesContainer: {
+    paddingBottom: 10,
+  },
+  messageContainer: {
+    marginBottom: 10,
+    maxWidth: "80%",
+  },
+  userMessage: {
+    alignSelf: "flex-end",
+  },
+  botMessage: {
+    alignSelf: "flex-start",
+  },
+  messageBubble: {
+    padding: 12,
+    borderRadius: 15,
+    maxWidth: "100%",
+  },
+  messageText: {
+    color: "#fff",
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  userMessageText: {
+    color: "#0a0e27",
+  },
+  inputArea: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 15,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.1)",
+    gap: 10,
+  },
+  chatInput: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    color: "#fff",
+    padding: 12,
+    borderRadius: 20,
+    fontSize: 16,
+  },
+  sendButton: {
+    padding: 10,
   },
 });

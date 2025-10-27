@@ -493,7 +493,7 @@ const WelcomeScreen = ({ navigation }) => {
             },
           ]}
         >
-          <Text style={styles.title}>Welcome to LuminaN</Text>
+          <Text style={styles.title}>Welcome to GasLT</Text>
           <Text style={styles.subtitle}>
             Your trusted gas delivery partner in Zimbabwe
           </Text>
@@ -506,9 +506,9 @@ const WelcomeScreen = ({ navigation }) => {
           </View>
 
           <Text style={styles.tagline}>
-            Empowering Zimbabwe with smarter, cleaner, and more reliable gas solutions.
+            Service you can trust.
           </Text>
-          <Text style={styles.author}>— thisismeprivateisaacngirazi</Text>
+          <Text style={styles.author}>— GasLT Team</Text>
         </Animated.View>
 
         {/* Feature Carousel */}

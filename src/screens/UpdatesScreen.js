@@ -13,7 +13,7 @@ const UpdatesScreen = () => {
           <Ionicons name="notifications-off-outline" size={60} color="#00eaff" />
           <Text style={styles.title}>No Updates for Now</Text>
           <Text style={styles.message}>
-            LuminaN is always working to bring you the latest news, promotions, and gas price updates.
+            GasLT is always working to bring you the latest news, promotions, and gas price updates.
             Check back soon for any updates!
           </Text>
         </View>

@@ -13,18 +13,18 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext"; 
 
 const LoginScreen = ({ navigation }) => {
-  const [formData, setFormData] = useState({ identifier: "", password: "" });
+  const { login } = useAuth(); 
+
+  const [formData, setFormData] = useState({ phone: "", password: "" });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
-
-  const { signIn } = useAuth();
 
   useEffect(() => {
     Animated.parallel([
@@ -40,66 +40,50 @@ const LoginScreen = ({ navigation }) => {
 
   const validate = () => {
     let tempErrors = {};
-    if (!formData.identifier.trim()) tempErrors.identifier = "Please enter your username or phone number";
+    if (!formData.phone.trim()) tempErrors.phone = "Please enter your phone number";
     if (!formData.password) tempErrors.password = "Please enter your password";
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
 
   const handleLogin = async () => {
-  if (!validate()) return;
+    if (!validate()) return;
 
-  setLoginLoading(true);
+    setLoginLoading(true);
 
-  try {
-    const response = await fetch("https://backend-luminan.onrender.com/api/login/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        identifier: formData.identifier.trim(),
-        password: formData.password.trim(),
-      }),
-    });
+    try {
+      
+      await login(formData.phone.trim(), formData.password.trim());
 
-    const data = await response.json().catch(() => ({ error: "Invalid server response" }));
-
-    if (response.ok && data.user && typeof data.user === "object" && data.user.auth_token) {
-      await signIn(data.user.auth_token, data.user);
-      // AppNavigator handles navigation automatically
-    } else {
-      setErrors({ general: data.error || "Invalid credentials" });
+      
+    } catch (error) {
+      setErrors({ general: error.message || "Login failed. Please check your credentials." });
+    } finally {
+      setLoginLoading(false);
     }
-  } catch (err) {
-    setErrors({
-      general: "Unable to connect to server. Please check your internet connection.",
-    });
-  } finally {
-    setLoginLoading(false);
-  }
-};
-
+  };
 
   return (
     <LinearGradient colors={["#0f2027", "#203a43", "#2c5364"]} style={styles.container}>
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
         <Animated.View style={[styles.card, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          <Text style={styles.title}>Welcome Back to LuminaN</Text>
+          <Text style={styles.title}>Welcome Back to GasLT</Text>
           <Text style={styles.subtitle}>
-            Login to continue using LuminaN, Zimbabwe's fastest and safest gas delivery service.
+            Login to continue using GasLT, Zimbabwe's fastest and safest gas delivery service.
           </Text>
 
-          {/* Identifier */}
+          {/* Phone Input */}
           <TextInput
             style={styles.input}
-            placeholder="Username or Phone Number"
+            placeholder="Phone Number"
             placeholderTextColor="#bbb"
             autoCapitalize="none"
-            value={formData.identifier}
-            onChangeText={(v) => handleChange("identifier", v)}
+            value={formData.phone}
+            onChangeText={(v) => handleChange("phone", v)}
           />
-          {errors.identifier && <Text style={styles.errorText}>{errors.identifier}</Text>}
+          {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
 
-          {/* Password */}
+          {/* Password Input */}
           <View style={styles.passwordContainer}>
             <TextInput
               style={styles.input}
@@ -116,7 +100,7 @@ const LoginScreen = ({ navigation }) => {
           {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
           {errors.general && <Text style={styles.errorText}>{errors.general}</Text>}
 
-          {/* Forgot password */}
+          {/* Forgot Password */}
           <TouchableOpacity onPress={() => navigation.navigate("ResetPassword")} style={styles.forgotButton}>
             <Text style={styles.forgotText}>
               Forgot your password? <Text style={{ color: "#00eaff", fontWeight: "bold" }}>Reset</Text>
@@ -154,6 +138,7 @@ const LoginScreen = ({ navigation }) => {
 };
 
 export default LoginScreen;
+
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
