@@ -167,6 +167,7 @@ const UserProfileScreen = ({ navigation }) => {
     const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
     const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
     const [deletePassword, setDeletePassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -185,9 +186,10 @@ const UserProfileScreen = ({ navigation }) => {
     };
 
     const handleDeleteAccount = () => {
-        
-        setDeletePassword(''); 
-        
+
+        setDeletePassword('');
+        setConfirmPassword('');
+
         setShowPassword(false);
         setDeleteModalVisible(true);
     };
@@ -195,6 +197,10 @@ const UserProfileScreen = ({ navigation }) => {
     const confirmDeleteAccount = async () => {
         if (!deletePassword.trim()) {
             Alert.alert('Error', 'Please enter your password to confirm deletion.');
+            return;
+        }
+        if (deletePassword !== confirmPassword) {
+            Alert.alert('Error', 'Passwords do not match. Please enter the same password in both fields.');
             return;
         }
         setIsDeleting(true);
@@ -272,7 +278,12 @@ const UserProfileScreen = ({ navigation }) => {
             navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
         } catch (error) {
             console.error('Delete account error:', error);
-            Alert.alert('Error', error.response?.data?.error || 'Failed to delete account. Please try again.');
+            const errorMessage = error.response?.data?.error || 'Failed to delete account. Please try again.';
+            if (errorMessage.includes('User password not set')) {
+                Alert.alert('Error', 'Account deletion requires a password to be set. Please set a password first in your profile settings.');
+            } else {
+                Alert.alert('Error', errorMessage);
+            }
         } finally {
             setIsDeleting(false);
         }
@@ -440,10 +451,36 @@ const UserProfileScreen = ({ navigation }) => {
                             />
                         </TouchableOpacity>
                     </View>
+                    <View style={styles.passwordInputContainer}>
+                        <TextInput
+                            key={isDeleteModalVisible ? 'confirm-delete-modal-open' : 'confirm-delete-modal-closed'}
+                            style={styles.passwordInput}
+                            placeholder="Confirm your password"
+                            placeholderTextColor={NEON.TEXT_SECONDARY}
+                            secureTextEntry={!showPassword}
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                            // *** REFINED AUTOFILL SETTINGS ***
+                            autoComplete="off"
+                            textContentType='none' // Explicitly set to 'none' to discourage iOS/Android autofill
+                            // *********************************
+                        />
+                        <TouchableOpacity
+                            style={styles.eyeIcon}
+                            onPress={() => setShowPassword(!showPassword)}
+                        >
+                            <Ionicons
+                                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                                size={20}
+                                color={NEON.TEXT_SECONDARY}
+                            />
+                        </TouchableOpacity>
+                    </View>
                     <View style={styles.modalButtons}>
                         <TouchableOpacity style={styles.cancelButton} onPress={() => {
                             setDeleteModalVisible(false);
                             setDeletePassword('');
+                            setConfirmPassword('');
                         }}>
                             <Text style={styles.cancelButtonText}>Cancel</Text>
                         </TouchableOpacity>

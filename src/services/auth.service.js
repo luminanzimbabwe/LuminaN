@@ -119,7 +119,7 @@ export const apiLoginUser = async (identifier, password) => {
   const candidates = [];
   if (ENDPOINTS?.AUTH?.LOGIN) candidates.push(ENDPOINTS.AUTH.LOGIN);
   // Legacy fallback used elsewhere in the project
-  candidates.push('/login_user');
+  candidates.push('user/login/');
 
   let lastError = null;
 

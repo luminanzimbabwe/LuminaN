@@ -79,10 +79,13 @@ const UserOrderTrackingScreen = ({ navigation, route }) => {
 
         wsRef.current.onopen = () => console.log("WebSocket connected to backend.");
         wsRef.current.onmessage = (event) => {
+            console.log("WebSocket message received:", event.data);
             const data = JSON.parse(event.data);
+            console.log("Parsed WebSocket data:", data);
 
             if (data.event === "location_update") {
                 // Backend sends lat/lng at top-level, not nested
+                console.log("Updating location: lat =", data.lat, "lng =", data.lng);
                 setLiveOrder(prev => ({
                     ...prev,
                     driverLat: data.lat ?? prev.driverLat,

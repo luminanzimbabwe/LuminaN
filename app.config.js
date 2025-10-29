@@ -1,18 +1,17 @@
 module.exports = {
   expo: {
-    // === PROJECT IDENTITY (Updated to LuminaNDriver) ===
-    name: "LuminaNDriver", // Updated Project Name
-    slug: "luminandriver", // Updated Project Slug (to match new target)
-    scheme: "luminandriver", // Updated Scheme
-    owner: "privateluminan", // Project Owner
-    
+    // === PROJECT IDENTITY ===
+    name: "GasLT",
+    slug: "gaslt",
+    scheme: "gaslt",
+
     // === EAS CONFIGURATION ===
     extra: {
       eas: {
-        projectId: "9cbdfef3-79ff-4081-9a1a-4fe43322fe9c" // New Project ID
+        projectId: "f52bfa5e-6cd2-432b-8acb-2c132c3d19f2"
       }
     },
-    
+
     // === VERSION AND ENVIRONMENT ===
     version: "1.0.0",
     sdkVersion: "54.0.0",
@@ -20,45 +19,37 @@ module.exports = {
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "automatic",
-    
+
     // === SPLASH SCREEN ===
     splash: {
       image: "./assets/splash-icon.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff"
     },
-    
+
     // === iOS CONFIGURATION ===
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.luminandriver", // Updated Bundle Identifier
+      bundleIdentifier: "com.gaslt",
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false
       }
     },
-    
+
     // === ANDROID CONFIGURATION ===
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
-      package: "com.luminandriver", // Updated Package Name
-      
-      buildProperties: {
-        android: {
-          enableProguardInReleaseBuilds: true,
-          enableShrinkResourcesInReleaseBuilds: true,
-          useLegacyPackaging: true  
-        }
-      }
+      package: "com.gaslt"
     },
-    
+
     // === WEB CONFIGURATION ===
     web: {
       favicon: "./assets/favicon.png"
     },
-    
+
     // === PLUGINS ===
     plugins: [
       "expo-asset",
@@ -68,16 +59,7 @@ module.exports = {
           backgroundColor: "#ffffff",
           image: "./assets/splash-icon.png"
         }
-      ],
-      [
-        "expo-build-properties",
-        {
-          android: {
-            kotlinVersion: "2.0.21"
-          }
-        }
-      ],
-      "react-native-edge-to-edge" 
+      ]
     ]
   }
 };

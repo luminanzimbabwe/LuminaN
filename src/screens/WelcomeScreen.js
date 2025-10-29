@@ -4,6 +4,7 @@ import {
   View,
   Text,
   StyleSheet,
+  // Image, <--- REMOVED: No longer needed for local file require
   TouchableOpacity,
   Animated,
   Easing,
@@ -13,21 +14,15 @@ import {
   Vibration,
   Pressable,
 } from "react-native";
-import Svg, { 
-  Rect, 
-  Text as SvgText, 
-  Circle, 
-  Path, 
-  Defs, 
-  LinearGradient as SvgLinearGradient, 
-  Stop,
-  RadialGradient,
-  ClipPath
-} from "react-native-svg";
-import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+
+// --- REMOVED: const LOGO_IMAGE = require('../assets/gas_lt_logo.png'); ---
+
+// Cleaned Imports
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import GasLtLogo from '../components/GasLtLogo';
 
 const { width, height } = Dimensions.get("window");
 
@@ -194,7 +189,7 @@ const WelcomeScreen = ({ navigation }) => {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      navigation.navigate("Login");
+      navigation.navigate("Login"); // Assuming you have a 'Login' screen defined
     });
   };
 
@@ -202,7 +197,7 @@ const WelcomeScreen = ({ navigation }) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    navigation.navigate("Login");
+    navigation.navigate("Login"); // Assuming you have a 'Login' screen defined
   };
 
   const showFeatureTooltip = (feature) => {
@@ -225,7 +220,10 @@ const WelcomeScreen = ({ navigation }) => {
     }, 2500);
   };
 
-  const EnhancedLogo = () => {
+  /**
+   * REFINED LOGO COMPONENT: Displays a placeholder using the image tag for the logo.
+   */
+  const AnimatedGasLtLogo = () => {
     const rotation = logoRotate.interpolate({
       inputRange: [0, 1],
       outputRange: ['0deg', '360deg'],
@@ -239,49 +237,10 @@ const WelcomeScreen = ({ navigation }) => {
             { rotate: rotation },
           ],
           opacity: fadeAnim,
-          marginBottom: 30,
+          marginRight: 20,
         }}
       >
-        <Svg width="160" height="80" viewBox="0 0 200 100">
-          <Defs>
-            <RadialGradient id="logoGlow" cx="50%" cy="50%" r="50%">
-              <Stop offset="0%" stopColor="#00eaff" stopOpacity="0.8" />
-              <Stop offset="50%" stopColor="#6EC6FF" stopOpacity="0.6" />
-              <Stop offset="100%" stopColor="#0072ff" stopOpacity="0.2" />
-            </RadialGradient>
-            <SvgLinearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <Stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-              <Stop offset="100%" stopColor="#00eaff" stopOpacity="0.8" />
-            </SvgLinearGradient>
-          </Defs>
-          
-          {/* Glow effect */}
-          <Circle cx="50" cy="50" r="35" fill="url(#logoGlow)" opacity="0.3" />
-          <Circle cx="150" cy="50" r="35" fill="url(#logoGlow)" opacity="0.3" />
-          
-          {/* Enhanced logo elements */}
-          <Rect 
-            x={20} y={30} width={40} height={40} 
-            fill="#6EC6FF" 
-            stroke="#FF3B3B" 
-            strokeWidth={3} 
-            rx={8} ry={8} 
-            transform="rotate(-8 40 50)" 
-          />
-          <SvgText x={40} y={58} fontSize="24" fontWeight="bold" fill="url(#textGrad)" textAnchor="middle">L</SvgText>
-          
-          <SvgText x={100} y={60} fontSize="28" fontWeight="bold" fill="url(#textGrad)" textAnchor="middle">umina</SvgText>
-          
-          <Rect 
-            x={140} y={30} width={40} height={40} 
-            fill="#6EC6FF" 
-            stroke="#FF3B3B" 
-            strokeWidth={3} 
-            rx={8} ry={8} 
-            transform="rotate(8 160 50)" 
-          />
-          <SvgText x={160} y={58} fontSize="24" fontWeight="bold" fill="url(#textGrad)" textAnchor="middle">N</SvgText>
-        </Svg>
+        <GasLtLogo width={320} height={85} color="#FFB800" />
       </Animated.View>
     );
   };
@@ -462,7 +421,7 @@ const WelcomeScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         bounces={true}
       >
-        {/* Enhanced Header */}
+        {/* Enhanced Header - Logo on Left, Skip on Right */}
         <Animated.View 
           style={[
             styles.header,
@@ -472,6 +431,10 @@ const WelcomeScreen = ({ navigation }) => {
             },
           ]}
         >
+          {/* 1. Logo Component (Left) */}
+          <AnimatedGasLtLogo />
+
+          {/* 2. Skip Button (Right) */}
           <TouchableOpacity
             style={styles.skipButton}
             onPress={handleSkip}
@@ -479,9 +442,6 @@ const WelcomeScreen = ({ navigation }) => {
             <Text style={styles.skipText}>Skip</Text>
           </TouchableOpacity>
         </Animated.View>
-
-        {/* Enhanced Logo */}
-        <EnhancedLogo />
 
         {/* Main Content */}
         <Animated.View
@@ -493,6 +453,8 @@ const WelcomeScreen = ({ navigation }) => {
             },
           ]}
         >
+          {/* Note: Logo removed from main content area */}
+          
           <Text style={styles.title}>Welcome to GasLT</Text>
           <Text style={styles.subtitle}>
             Your trusted gas delivery partner in Zimbabwe
@@ -615,9 +577,11 @@ const styles = StyleSheet.create({
   // Header
   header: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
+
   skipButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,

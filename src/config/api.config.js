@@ -1,6 +1,8 @@
 // src/config/api.config.js
 
+
 export const BASE_URL = 'https://backend-luminan.onrender.com/api/v1';
+
 export const WS_BASE_URL = 'wss://backend-luminan.onrender.com';
 
 export const ENDPOINTS = {
@@ -11,7 +13,7 @@ export const ENDPOINTS = {
     LOGOUT: 'user/logout/',
     PROFILE: 'user/profile/',
     REFRESH_TOKEN: 'user/refresh/',
-    DELETE_ACCOUNT: 'user/delete-account/',
+    DELETE_ACCOUNT: '/user/delete-account/',
     FORGOT_PASSWORD: 'user/forgot-password/',
     RESET_PASSWORD: 'user/reset-password/',
   },

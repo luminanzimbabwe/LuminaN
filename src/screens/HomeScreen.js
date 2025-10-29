@@ -10,14 +10,13 @@ import {
   TextInput,
   Animated,
   Dimensions,
-  Platform,
-  Linking,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import Svg, { Rect, Text as SvgText, Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { apiGetCurrentUser } from "../services/auth.service";
+import GasLtLogo from '../components/GasLtLogo';
 
 const { width, height } = Dimensions.get("window");
 
@@ -223,21 +222,7 @@ const HomeScreen = ({ navigation }) => {
 
 
 
-  const Logo = ({ width = 140, height = 60 }) => (
-    <Svg width={width} height={height} viewBox="0 0 180 80">
-      <Defs>
-        <RadialGradient id="logoGrad" cx="50%" cy="50%" r="50%">
-          <Stop offset="0%" stopColor="#00eaff" stopOpacity="1" />
-          <Stop offset="100%" stopColor="#6EC6FF" stopOpacity="0.8" />
-        </RadialGradient>
-      </Defs>
-      <Rect x={15} y={25} width={35} height={35} fill="url(#logoGrad)" stroke="#FF3B3B" strokeWidth={2} rx={8} ry={8} transform="rotate(-8 32.5 42.5)" />
-      <SvgText x={32} y={48} fontSize="20" fontWeight="bold" fill="#fff" textAnchor="middle">L</SvgText>
-      <SvgText x={90} y={50} fontSize="22" fontWeight="bold" fill="#FFFFFF" textAnchor="middle">umina</SvgText>
-      <Rect x={130} y={25} width={35} height={35} fill="url(#logoGrad)" stroke="#FF3B3B" strokeWidth={2} rx={8} ry={8} transform="rotate(8 147.5 42.5)" />
-      <SvgText x={147} y={48} fontSize="20" fontWeight="bold" fill="#fff" textAnchor="middle">N</SvgText>
-    </Svg>
-  );
+
 
   const PackageCard = ({ pkg, index }) => {
     const cardScale = useRef(new Animated.Value(1)).current;
@@ -324,11 +309,12 @@ const HomeScreen = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient colors={["#0a0e27", "#16213e", "#1a2332"]} style={styles.container}>
-      <ScrollView 
-        contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
-      >
+    <SafeAreaView style={{ flex: 1 }}>
+      <LinearGradient colors={["#0a0e27", "#16213e", "#1a2332"]} style={styles.container}>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+        >
         {/* Animated Header */}
         <Animated.View 
           style={[
@@ -339,7 +325,7 @@ const HomeScreen = ({ navigation }) => {
             },
           ]}
         >
-          <Logo />
+          <GasLtLogo />
           <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
             <TouchableOpacity
               style={styles.notification}
@@ -580,13 +566,11 @@ const HomeScreen = ({ navigation }) => {
           colors={["#000000", "#000000"]}
           style={styles.chatbotGradient}
         >
-          <View style={{ alignItems: "center" }}>
-            <Logo width={50} height={25} />
-            <Text style={{ color: "#fff", fontSize: 10, fontWeight: "bold", marginTop: 2 }}>Chat</Text>
-          </View>
+          <Ionicons name="chatbubbles" size={30} color="#00eaff" />
         </LinearGradient>
       </TouchableOpacity>
     </LinearGradient>
+  </SafeAreaView>
   );
 };
 
@@ -594,12 +578,13 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  topBar: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    alignItems: "center", 
-    margin: 20,
-    marginTop: Platform.OS === 'ios' ? 50 : 30,
+  topBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   notification: { position: "relative" },
   notificationGradient: {
@@ -628,26 +613,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(0,234,255,0.2)",
   },
-  welcomeText: { 
-    color: "#facc15", 
-    fontSize: 24, 
-    fontWeight: "bold", 
-    textAlign: "center", 
-    marginBottom: 10 
+  welcomeText: {
+    color: "#facc15",
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 8
   },
-  quoteText: { 
-    color: "#fff", 
-    fontSize: 16, 
-    textAlign: "center", 
-    marginBottom: 5,
-    lineHeight: 22,
+  quoteText: {
+    color: "#fff",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 4,
+    lineHeight: 18,
   },
   authorText: {
     color: "#888",
-    fontSize: 14,
+    fontSize: 12,
     textAlign: "center",
     fontStyle: "italic",
-    marginBottom: 20,
+    marginBottom: 15,
   },
   statsContainer: {
     flexDirection: "row",
@@ -712,19 +697,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  packagesSection: { marginBottom: 30 },
-  sectionTitle: { 
-    color: "#fff", 
-    fontSize: 26, 
-    fontWeight: "bold", 
+  packagesSection: { marginBottom: 20 },
+  sectionTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
     marginHorizontal: 20,
     marginBottom: 5,
   },
   sectionSubtitle: {
     color: "#888",
-    fontSize: 16,
+    fontSize: 14,
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 15,
   },
   packagesContainer: {
     paddingHorizontal: 20,
@@ -733,9 +718,9 @@ const styles = StyleSheet.create({
   
   packageCard: {
     width: width * 0.75,
-    height: 280,
+    height: 320,
     marginRight: 15,
-    borderRadius: 20,
+    borderRadius: 15,
     overflow: "hidden",
     elevation: 8,
     shadowColor: "#000",
@@ -745,7 +730,7 @@ const styles = StyleSheet.create({
   },
   popularPackageCard: {
     width: width * 0.8,
-    height: 300,
+    height: 340,
     elevation: 12,
     shadowOpacity: 0.4,
   },

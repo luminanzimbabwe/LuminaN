@@ -11,12 +11,13 @@ import {
     ScrollView,
     Keyboard,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../context/AuthContext";
 
 const RegisterScreen = ({ navigation }) => {
-    const { register, persistTempUser } = useAuth(); 
+    const { register, persistTempUser, setToken, setApiToken, setUser } = useAuth();
 
     const [formData, setFormData] = useState({
         username: "",
@@ -33,7 +34,6 @@ const RegisterScreen = ({ navigation }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
 
-    // Animate form on mount
     useEffect(() => {
         Animated.parallel([
             Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
@@ -43,7 +43,7 @@ const RegisterScreen = ({ navigation }) => {
 
     const handleChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
-        setErrors({ ...errors, [name]: "" });
+        setErrors(prev => ({ ...prev, [name]: "" }));
     };
 
     const validate = useCallback(() => {
@@ -86,51 +86,65 @@ const RegisterScreen = ({ navigation }) => {
             console.log("REGISTER PAYLOAD SENT:", payload);
             const result = await register(payload);
 
-            if (result && (result.tempUserId || result.temp_user_id)) {
-               
-                await persistTempUser(result);
+            // Success: set tokens and user
+            if (result?.access && result?.refresh) {
+                await AsyncStorage.setItem('accessToken', result.access);
+                await AsyncStorage.setItem('refreshToken', result.refresh);
+                await AsyncStorage.setItem('user', JSON.stringify(result.user));
+                setToken(result.access);
+                setApiToken(result.access);
+                setUser(result.user);
 
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: "VerifyOTP" }],
-                });
+                navigation.reset({ index: 0, routes: [{ name: "GettingReadyScreen" }] });
                 return;
             }
 
-            setErrors({ general: "Registration succeeded, but verification data is missing." });
+            // Fallback for temp user
+            if (result?.tempUserId || result?.temp_user_id) {
+                await persistTempUser(result);
+                navigation.reset({ index: 0, routes: [{ name: "VerifyOTP" }] });
+                return;
+            }
+
+            setErrors({ general: "Registration succeeded, but authentication data is missing." });
 
         } catch (error) {
             console.error("Registration Error:", error);
-            let errorMessage = "An unexpected error occurred.";
             let fieldErrors = {};
+            let generalError = "An unexpected error occurred.";
 
-            if (error && typeof error === 'object' && error.error) {
-                errorMessage = error.error;
-            } else if (error && typeof error === 'object' && Object.keys(error).length > 0) {
-                fieldErrors = error;
-                errorMessage = fieldErrors.non_field_errors?.[0] || fieldErrors.detail || "Validation failed. Please review your input.";
-            } else if (error && error.message) {
-                errorMessage = error.message;
-            } else {
-                errorMessage = String(error);
+            // Normalize backend errors
+            const data = error?.response?.data || error?.data;
+            if (data && typeof data === "object") {
+                generalError = data.error || data.message || data.detail || generalError;
+
+                if (data.details && typeof data.details === "object") {
+                    // Map backend fields to frontend field names if needed
+                    if (data.details.phone_number) fieldErrors.phoneNumber = data.details.phone_number;
+                    if (data.details.confirmPassword) fieldErrors.confirmPassword = data.details.confirmPassword;
+                    if (data.details.username) fieldErrors.username = data.details.username;
+                    if (data.details.email) fieldErrors.email = data.details.email;
+                    if (data.details.password) fieldErrors.password = data.details.password;
+
+                    // Add any other fields dynamically
+                    Object.keys(data.details).forEach(key => {
+                        if (!fieldErrors[key]) fieldErrors[key] = data.details[key];
+                    });
+                }
             }
 
-            if (errorMessage.includes('Network') || errorMessage.includes('failed to fetch')) {
-                errorMessage = "Network connection failed. Please check your internet and server status.";
-            } else if (errorMessage.includes("Server returned non-JSON error")) {
-                errorMessage = "Internal Server Error (500). Please check the backend console.";
+            // Network / server fallback
+            if (error.message?.includes("Network") || error.message?.includes("failed to fetch")) {
+                generalError = "Network connection failed. Please check your internet and server status.";
+            } else if (error.message?.includes("500")) {
+                generalError = "Internal Server Error (500). Please check the backend console.";
             }
 
-            if (Object.keys(fieldErrors).length > 0) {
-                setErrors({ ...fieldErrors, general: errorMessage });
-            } else {
-                setErrors({ general: errorMessage });
-            }
-
+            setErrors({ ...fieldErrors, general: generalError });
         } finally {
             setLoading(false);
         }
-    }, [formData, validate, register, persistTempUser, navigation]);
+    }, [formData, validate, register, persistTempUser, setToken, setApiToken, setUser, navigation]);
 
     return (
         <>
@@ -138,9 +152,7 @@ const RegisterScreen = ({ navigation }) => {
                 <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
                     <Animated.View style={[styles.card, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
                         <Text style={styles.title}>Register for GasLT</Text>
-                        <Text style={styles.subtitle}>
-                            Join GasLT, Zimbabwe’s most reliable gas delivery service.
-                        </Text>
+                        <Text style={styles.subtitle}>Join GasLT, Zimbabwe’s most reliable gas delivery service.</Text>
 
                         <TextInput
                             style={styles.input}
@@ -174,7 +186,6 @@ const RegisterScreen = ({ navigation }) => {
                             />
                         </View>
                         {errors.phoneNumber && <Text style={styles.errorText}>{errors.phoneNumber}</Text>}
-
                         <View style={styles.passwordContainer}>
                             <TextInput
                                 style={styles.input}
@@ -231,6 +242,8 @@ const RegisterScreen = ({ navigation }) => {
 };
 
 export default RegisterScreen;
+
+
 
 const styles = StyleSheet.create({
     container: { flex: 1 },

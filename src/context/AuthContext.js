@@ -214,7 +214,8 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{
       isAuthenticated, isLoading, user, token, tempUser, isSetupComplete,
-      login, logout, register, verifyOtp, markSetupComplete, persistTempUser, updateUserProfile
+      login, logout, register, verifyOtp, markSetupComplete, persistTempUser, updateUserProfile,
+      setToken, setApiToken, setUser
     }}>
       {children}
     </AuthContext.Provider>
