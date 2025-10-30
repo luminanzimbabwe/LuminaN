@@ -126,7 +126,7 @@ export const apiLoginUser = async (identifier, password) => {
 
   for (const url of candidates) {
     try {
-      const resolvedUrl = url.startsWith('http') ? url : `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+      const resolvedUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
       const response = await axiosInstance.post(resolvedUrl, { identifier, password });
       return response.data;
     } catch (err) {
