@@ -6,8 +6,10 @@
   "build": {
     "base": {
       "cache": {
-        "key": "v1.0.1" 
-      }
+        "key": "v1.0.1"
+      },
+      "node": "18.17.0",
+      "yarn": "1.22.19"
     },
     "development": {
       "extends": "base",
@@ -21,19 +23,28 @@
       "extends": "base",
       "distribution": "internal",
       "android": {
-       
-        "buildType": "apk" 
+        "buildType": "apk"
       }
     },
     "production": {
       "extends": "base",
       "autoIncrement": true,
+      "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "env": {
+        "NODE_ENV": "production"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./service-account.json",
+        "track": "production"
+      }
+    }
   }
 }

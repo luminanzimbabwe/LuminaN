@@ -14,6 +14,7 @@ const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30000,
+  withCredentials: true, // Enable cookies for refresh token
 });
 
 // Initialize token on first request
@@ -220,7 +221,12 @@ export const apiVerifyOtp = async (tempUserId, otpCode) => {
 
 export const apiRefreshToken = async (refreshToken) => {
   const url = ENDPOINTS?.AUTH?.REFRESH_TOKEN ?? '/auth/refresh-token';
-  const response = await axiosInstance.post(url, { refreshToken });
+  // Send refresh token in request body with withCredentials for cookie compatibility
+  const response = await axios.post(`${BASE_URL}${url}`, { refresh_token: refreshToken }, {
+    withCredentials: true,
+    headers: { 'Content-Type': 'application/json' },
+    timeout: 30000,
+  });
   return response.data;
 };
 

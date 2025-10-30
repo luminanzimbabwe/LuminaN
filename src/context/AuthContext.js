@@ -91,6 +91,7 @@ export const AuthProvider = ({ children }) => {
 
       if (storedRefreshToken) {
         try {
+          // Pass storedRefreshToken in request body for refresh
           const refreshed = await apiRefreshToken(storedRefreshToken);
           const newAccess = refreshed?.accessToken ?? refreshed?.access;
           if (newAccess) {
@@ -98,7 +99,7 @@ export const AuthProvider = ({ children }) => {
             const userData = refreshed.user ?? await apiGetCurrentUser(newAccess);
             setToken(newAccess);
             setApiToken(newAccess);
-            
+
             const storedUserObj = storedUser ? JSON.parse(storedUser) : {};
             const mergedUser = { ...storedUserObj, ...userData };
             setUser(mergedUser);

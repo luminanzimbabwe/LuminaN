@@ -1,7 +1,7 @@
 // src/config/api.config.js
 
 
-export const BASE_URL = 'https://backend-luminan.onrender.com/api/v1';
+export const BASE_URL = 'https://backend-luminan.onrender.com/api/v1/';
 
 export const WS_BASE_URL = 'wss://backend-luminan.onrender.com';
 

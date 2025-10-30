@@ -5,13 +5,6 @@ module.exports = {
     slug: "gaslt",
     scheme: "gaslt",
 
-    // === EAS CONFIGURATION ===
-    extra: {
-      eas: {
-        projectId: "f52bfa5e-6cd2-432b-8acb-2c132c3d19f2"
-      }
-    },
-
     // === VERSION AND ENVIRONMENT ===
     version: "1.0.0",
     sdkVersion: "54.0.0",
